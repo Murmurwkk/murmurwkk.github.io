@@ -1,0 +1,340 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><meta name="generator" content="Astro v5.18.2"><meta name="description" content="An XOR swizzle took shared-memory bank conflicts on a 1024³ FP32 GEMM to zero and made the kernel 19.5% slower. Bank addressing, double buffering and cp.async, and where the time went."><meta name="theme-color" content="#070b17"><meta property="og:type" content="website"><meta property="og:title" content="When Removing Bank Conflicts Made My GEMM Slower · Murmurwkk 的个人技术主页"><meta property="og:description" content="An XOR swizzle took shared-memory bank conflicts on a 1024³ FP32 GEMM to zero and made the kernel 19.5% slower. Bank addressing, double buffering and cp.async, and where the time went."><meta property="og:url" content="https://murmurwkk.github.io/blog/cuda-double-buffering/"><link rel="canonical" href="https://murmurwkk.github.io/blog/cuda-double-buffering/"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="alternate" type="application/rss+xml" title="Murmurwkk 的个人技术主页" href="/rss.xml"><title>When Removing Bank Conflicts Made My GEMM Slower · Murmurwkk 的个人技术主页</title><script>
+      (() => {
+        const saved = localStorage.getItem('theme');
+        document.documentElement.dataset.theme = saved === 'light' ? 'light' : 'dark';
+      })();
+    </script><link rel="stylesheet" href="/_astro/about.BxjwpyE4.css"></head> <body style="--site-background-image: url(/background.webp)"> <div class="sakura-layer" aria-hidden="true"></div> <div class="ambient ambient-one"></div> <div class="ambient ambient-two"></div> <header class="site-header"> <div class="shell header-top"> <a class="brand" href="/" aria-label="Murmurwkk 的个人技术主页"> <span class="brand-mark"><img src="/_astro/icon.DgMJSaVH.gif" alt=""></span> <span class="brand-copy"><strong>Murmurwkk</strong><small>AI Systems Lab</small></span> </a> <nav class="profile-tabs" aria-label="个人主页导航"> <a href="/"> <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0ZM3.5 7.25h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1 0-1.5ZM8 3a.75.75 0 0 1 .75.75v8.5a.75.75 0 0 1-1.5 0v-8.5A.75.75 0 0 1 8 3Z"></path></svg>   <span>Overview</span>  </a><a href="/blog/" aria-current="page">  <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M0 1.75A.75.75 0 0 1 .75 1h4.5C6.35 1 7.35 1.42 8 2.1A3.76 3.76 0 0 1 10.75 1h4.5a.75.75 0 0 1 .75.75v11.5a.75.75 0 0 1-.75.75h-4.5c-.8 0-1.54.31-2.1.87a.92.92 0 0 1-1.3 0A2.97 2.97 0 0 0 5.25 14H.75a.75.75 0 0 1-.75-.75V1.75Zm1.5.75v10h3.75c.73 0 1.41.17 2 .48V3.63A2.24 2.24 0 0 0 5.25 2.5H1.5Zm7.25 1.13v9.35a4.46 4.46 0 0 1 2-.48h3.75v-10h-3.75a2.24 2.24 0 0 0-2 1.13Z"></path></svg>  <span>blog</span>  </a><a href="/about/">   <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 5.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM8 2a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm-5.5 11c0-1.73 2.44-2.75 5.5-2.75s5.5 1.02 5.5 2.75v.25a.75.75 0 0 1-1.5 0V13c0-.43-1.33-1.25-4-1.25S4 12.57 4 13v.25a.75.75 0 0 1-1.5 0V13Z"></path></svg> <span>About</span>  </a> </nav> <div class="header-actions"> <a class="header-github-link header-zhihu-link" href="https://www.zhihu.com/people/murmurmur-38" target="_blank" rel="noreferrer"> <strong class="zhihu-mark" aria-hidden="true">知</strong> <span>知乎</span> <span aria-hidden="true">↗</span> </a> <a class="header-github-link" href="https://github.com/dashboard" target="_blank" rel="noreferrer"> <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.64 0 8.13c0 3.59 2.29 6.64 5.47 7.71.4.08.55-.17.55-.39 0-.19-.01-.83-.01-1.51-2.01.38-2.53-.5-2.69-.96-.09-.23-.48-.96-.82-1.15-.28-.15-.68-.53-.01-.54.63-.01 1.08.59 1.23.83.72 1.23 1.87.88 2.33.67.07-.53.28-.88.51-1.08-1.78-.21-3.64-.91-3.64-4.02 0-.89.31-1.62.82-2.19-.08-.2-.36-1.04.08-2.16 0 0 .67-.22 2.2.84A7.5 7.5 0 0 1 8 3.91a7.4 7.4 0 0 1 2 .27c1.53-1.06 2.2-.84 2.2-.84.44 1.12.16 1.96.08 2.16.51.57.82 1.3.82 2.19 0 3.12-1.87 3.81-3.65 4.02.29.25.54.74.54 1.5 0 1.08-.01 1.95-.01 2.22 0 .22.15.47.55.39A8.13 8.13 0 0 0 16 8.13C16 3.64 12.42 0 8 0Z"></path></svg> <span>GitHub</span> <span aria-hidden="true">↗</span> </a> <button class="theme-toggle" type="button" aria-label="切换深浅主题" title="切换主题"> <svg class="theme-icon theme-icon-sun" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11.25A3.25 3.25 0 1 0 8 4.75a3.25 3.25 0 0 0 0 6.5ZM8 .5a.75.75 0 0 1 .75.75v1a.75.75 0 0 1-1.5 0v-1A.75.75 0 0 1 8 .5Zm0 12.5a.75.75 0 0 1 .75.75v1a.75.75 0 0 1-1.5 0v-1A.75.75 0 0 1 8 13ZM.5 8a.75.75 0 0 1 .75-.75h1a.75.75 0 0 1 0 1.5h-1A.75.75 0 0 1 .5 8Zm12.5 0a.75.75 0 0 1 .75-.75h1a.75.75 0 0 1 0 1.5h-1A.75.75 0 0 1 13 8ZM2.7 2.7a.75.75 0 0 1 1.06 0l.7.7A.75.75 0 0 1 3.4 4.46l-.7-.7a.75.75 0 0 1 0-1.06Zm8.84 8.84a.75.75 0 0 1 1.06 0l.7.7a.75.75 0 0 1-1.06 1.06l-.7-.7a.75.75 0 0 1 0-1.06ZM13.3 2.7a.75.75 0 0 1 0 1.06l-.7.7a.75.75 0 1 1-1.06-1.06l.7-.7a.75.75 0 0 1 1.06 0ZM4.46 11.54a.75.75 0 0 1 0 1.06l-.7.7a.75.75 0 0 1-1.06-1.06l.7-.7a.75.75 0 0 1 1.06 0Z"></path></svg> <svg class="theme-icon theme-icon-moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.2 1.05a.75.75 0 0 1 .14.8 5.63 5.63 0 0 0 7.8 7.08.75.75 0 0 1 .98.93A7.2 7.2 0 1 1 5.4.9a.75.75 0 0 1 .8.15ZM4.78 2.98a5.7 5.7 0 1 0 8.14 7.77 7.14 7.14 0 0 1-8.14-7.77Z"></path></svg> </button> </div> <span class="build-version" title="Built from release at commit b1257f43b417aa74c52aaefe76b17351ef7c8372">live · b1257f4</span> </div> </header> <script type="module">const o=document.querySelector(".theme-toggle");o?.addEventListener("click",()=>{const e=(document.documentElement.dataset.theme??"dark")==="dark"?"light":"dark";document.documentElement.dataset.theme=e,localStorage.setItem("theme",e)});const n=document.querySelector(".site-header");let d=window.scrollY,s=0;const r=()=>{const t=Math.max(window.scrollY,0),e=t-d;t<=12||e<-4?n?.classList.remove("is-hidden"):e>4&&n?.classList.add("is-hidden"),d=t,s=0};window.addEventListener("scroll",()=>{s||(s=window.requestAnimationFrame(r))},{passive:!0});n?.addEventListener("focusin",()=>n.classList.remove("is-hidden"));</script>  <main> <article class="article"> <header class="article-header"> <p class="eyebrow">Article</p> <h1>When Removing Bank Conflicts Made My GEMM Slower</h1> <p class="article-description">An XOR swizzle took shared-memory bank conflicts on a 1024³ FP32 GEMM to zero and made the kernel 19.5% slower. Bank addressing, double buffering and cp.async, and where the time went.</p> <div class="post-meta"> 更新于 <time datetime="2026-11-06T17:53:07.000Z">2026/11/6</time> · 8 个章节
+</div> <div class="tag-row" style="margin-top: 16px"> <span class="tag">#CUDA</span><span class="tag">#GEMM</span><span class="tag">#shared memory</span><span class="tag">#async pipelining</span><span class="tag">#performance experiments</span> </div> </header> <div class="prose"><p>This GEMM taught me one thing very clearly. On 1024³, putting A into shared memory with an ordinary row layout makes eight different addresses land in the same bank. Switching to a 4-element-group XOR swizzle brought Nsight Compute’s extra shared wavefronts from 4,194,304 down to <strong>0</strong>, as low as it can go. And the same kernel’s runtime went from 0.30379 ms to 0.36307 ms: <strong>19.5% slower</strong>.</p>
+<p>This post is a record of that trade. The conflict really was solved, but whether the kernel as a whole got better depends on resources and residency too. The FP32 GEMM here maps one block to 128×64 outputs, with 128 threads, 8×8 accumulation per thread and K advancing 32 at a time. What changes between versions is the shared layout, the number of buffer slots and the copy instructions. All four implementations handle non-aligned matrices, and everything ran on an RTX 5070 Laptop. The tile here differs from the one in the <a href="/blog/gemm-reuse-ldst/">data reuse post</a>, and timings are reported separately.</p>
+<p>I also have to stress that my experiments here are pretty rough, and this post doesn’t really qualify as a proper tutorial; it’s mostly a record of my own learning by trial and error. If you find it dull (honestly, putting it back together, I kept feeling I’d agonized over things that didn’t need agonizing over), feel free to skip to the end and look at the question I’m stuck on. I’d be grateful for any pointers.</p>
+<p>Here’s the route. We’ll set up the thread mapping, derive the bank conflict from it and fix it with a swizzle, then build up single buffering, double buffering and <code>cp.async</code>, including one initialization bug worth knowing about. After making all of it correct on tails, offsets and grids, we’ll line up four implementations that each differ by one step and look at what the compiler, the profiler and the clock say about each.</p>
+<h2 id="the-setup-one-12864-tile-128-threads">The setup: one 128×64 tile, 128 threads</h2>
+<p>Inputs are contiguous row-major <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo stretchy="false">[</mo><mi>M</mi><mo separator="true">,</mo><mi>K</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">A[M,K]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">A</span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.109em;">M</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="mclose">]</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo stretchy="false">[</mo><mi>K</mi><mo separator="true">,</mo><mi>N</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">B[K,N]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="mclose">]</span></span></span></span>, output <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo stretchy="false">[</mo><mi>M</mi><mo separator="true">,</mo><mi>N</mi><mo stretchy="false">]</mo><mo>=</mo><mi>A</mi><mi>B</mi></mrow><annotation encoding="application/x-tex">C[M,N]=AB</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.109em;">M</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">A</span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span></span></span></span>. Each K chunk needs a 128×32 slice of A and a 32×64 slice of B, 6144 floats or 24 KiB. These are reused by the block’s four warps, and each thread keeps its 64 partial sums in registers.</p>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="cpp"><code><span class="line"><span style="color:#FF7B72">int</span><span style="color:#E6EDF3"> warp </span><span style="color:#FF7B72">=</span><span style="color:#E6EDF3"> threadIdx.x </span><span style="color:#FF7B72">/</span><span style="color:#79C0FF"> 32</span><span style="color:#E6EDF3">;</span></span>
+<span class="line"><span style="color:#FF7B72">int</span><span style="color:#E6EDF3"> lane </span><span style="color:#FF7B72">=</span><span style="color:#E6EDF3"> threadIdx.x </span><span style="color:#FF7B72">%</span><span style="color:#79C0FF"> 32</span><span style="color:#E6EDF3">;</span></span>
+<span class="line"><span style="color:#FF7B72">int</span><span style="color:#E6EDF3"> mr </span><span style="color:#FF7B72">=</span><span style="color:#E6EDF3"> (warp </span><span style="color:#FF7B72">/</span><span style="color:#79C0FF"> 2</span><span style="color:#E6EDF3">) </span><span style="color:#FF7B72">*</span><span style="color:#79C0FF"> 64</span><span style="color:#FF7B72"> +</span><span style="color:#E6EDF3"> (lane </span><span style="color:#FF7B72">/</span><span style="color:#79C0FF"> 4</span><span style="color:#E6EDF3">) </span><span style="color:#FF7B72">*</span><span style="color:#79C0FF"> 8</span><span style="color:#E6EDF3">;</span></span>
+<span class="line"><span style="color:#FF7B72">int</span><span style="color:#E6EDF3"> nc </span><span style="color:#FF7B72">=</span><span style="color:#E6EDF3"> (warp </span><span style="color:#FF7B72">%</span><span style="color:#79C0FF"> 2</span><span style="color:#E6EDF3">) </span><span style="color:#FF7B72">*</span><span style="color:#79C0FF"> 32</span><span style="color:#FF7B72"> +</span><span style="color:#E6EDF3"> (lane </span><span style="color:#FF7B72">%</span><span style="color:#79C0FF"> 4</span><span style="color:#E6EDF3">) </span><span style="color:#FF7B72">*</span><span style="color:#79C0FF"> 8</span><span style="color:#E6EDF3">;</span></span></code></pre>
+<p>Each thread owns <code>[mr:mr+8,nc:nc+8]</code> within the tile. Lanes 0–3 of warp 0 compute the same eight rows and four different groups of eight columns, together an 8×32 output strip; lanes 4–7 take the next strip. One warp covers 64×32, and four warps in a 2×2 arrangement make exactly 128×64. For a fixed k, the four threads on the same rows need the same group of eight A elements, each with different B. That’s good reuse. But put A into shared memory as plain <code>row*32+k</code> and you hit bank conflicts.</p>
+<h2 id="fundamentals-shared-memory-banks">Fundamentals: shared memory banks</h2>
+<p>For the 32-bit accesses discussed here, think of shared memory as 32 banks, with the word address mod 32 choosing the bank. Different banks serve in parallel; different words in the same bank need extra service; and the <em>same</em> word read by several lanes is broadcast. That last case has to be separated out from “same bank,” or you’ll overestimate conflicts (<a href="https://docs.nvidia.com/cuda/archive/12.6.0/cuda-c-programming-guide/index.html#shared-memory-5-x">CUDA shared memory docs</a>).</p>
+<p>Fix the row offset i within a thread. A’s address is</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mi>r</mi></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mn>64</mn><mo stretchy="false">⌊</mo><mi>w</mi><mi>a</mi><mi>r</mi><mi>p</mi><mi mathvariant="normal">/</mi><mn>2</mn><mo stretchy="false">⌋</mo><mo>+</mo><mn>8</mn><mo stretchy="false">⌊</mo><mi>l</mi><mi>a</mi><mi>n</mi><mi>e</mi><mi mathvariant="normal">/</mi><mn>4</mn><mo stretchy="false">⌋</mo><mo>+</mo><mi>i</mi><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mi>w</mi><mi>o</mi><mi>r</mi><mi>d</mi></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mn>32</mn><mi>r</mi><mo>+</mo><mi>k</mi><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mi>b</mi><mi>a</mi><mi>n</mi><mi>k</mi></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mi>k</mi><mtext> </mtext><mo lspace="0.22em" rspace="0.22em"><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">d</mi></mrow></mo><mtext> </mtext><mn>32.</mn></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+r&#x26;=64\lfloor warp/2\rfloor+8\lfloor lane/4\rfloor+i,\\
+word&#x26;=32r+k,\\
+bank&#x26;=k\bmod32.
+\end{aligned}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:4.2em;vertical-align:-1.85em;"></span><span class="mord"><span class="mtable"><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.35em;"><span style="top:-4.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">r</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="mord mathnormal" style="margin-right:0.0278em;">or</span><span class="mord mathnormal">d</span></span></span><span style="top:-1.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0315em;">bank</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.85em;"><span></span></span></span></span></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.35em;"><span style="top:-4.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">64</span><span class="mopen">⌊</span><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="mord mathnormal">a</span><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="mord mathnormal">p</span><span class="mord">/2</span><span class="mclose">⌋</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">8</span><span class="mopen">⌊</span><span class="mord mathnormal" style="margin-right:0.0197em;">l</span><span class="mord mathnormal">an</span><span class="mord mathnormal">e</span><span class="mord">/4</span><span class="mclose">⌋</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">i</span><span class="mpunct">,</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">32</span><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="mpunct">,</span></span></span><span style="top:-1.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="mspace" style="margin-right:0.0556em;"></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord"><span class="mord mathrm">mod</span></span></span><span class="mspace" style="margin-right:0.0556em;"></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">32.</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.85em;"><span></span></span></span></span></span></span></span></span></span></span></span>
+<p>All 32 lanes land in the same bank, but each group of four adjacent lanes reads the same A element. After removing broadcast duplicates, eight distinct words are still fighting over one bank. The cause is that the row pitch exactly equals the bank period, so reading across rows never moves to a different bank.</p>
+<p>The textbook fix is padding, one extra element per row, to break that period. Here I also wanted to keep 16-byte copies of four adjacent floats, so instead I permuted four-element groups: split each row’s 32 values into eight groups and move only the group positions.</p>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="cpp"><code><span class="line"><span style="color:#FF7B72">int</span><span style="color:#D2A8FF"> a_index</span><span style="color:#E6EDF3">(</span><span style="color:#FF7B72">int</span><span style="color:#FFA657"> row</span><span style="color:#E6EDF3">, </span><span style="color:#FF7B72">int</span><span style="color:#FFA657"> col</span><span style="color:#E6EDF3">) {</span></span>
+<span class="line"><span style="color:#FF7B72">    int</span><span style="color:#E6EDF3"> group </span><span style="color:#FF7B72">=</span><span style="color:#E6EDF3"> (col </span><span style="color:#FF7B72">/</span><span style="color:#79C0FF"> 4</span><span style="color:#E6EDF3">) </span><span style="color:#FF7B72">^</span><span style="color:#E6EDF3"> ((row </span><span style="color:#FF7B72">/</span><span style="color:#79C0FF"> 8</span><span style="color:#E6EDF3">) </span><span style="color:#FF7B72">%</span><span style="color:#79C0FF"> 8</span><span style="color:#E6EDF3">);</span></span>
+<span class="line"><span style="color:#FF7B72">    return</span><span style="color:#E6EDF3"> row </span><span style="color:#FF7B72">*</span><span style="color:#79C0FF"> 32</span><span style="color:#FF7B72"> +</span><span style="color:#E6EDF3"> group </span><span style="color:#FF7B72">*</span><span style="color:#79C0FF"> 4</span><span style="color:#FF7B72"> +</span><span style="color:#E6EDF3"> col </span><span style="color:#FF7B72">%</span><span style="color:#79C0FF"> 4</span><span style="color:#E6EDF3">;</span></span>
+<span class="line"><span style="color:#E6EDF3">}</span></span></code></pre>
+<p>Take col=0: rows 0–7 stay in group 0, rows 8–15 move to group 1, rows 16–23 to group 2. Along the access path through those eight row groups, bank starting points become 0, 4, 8, …, 28. The eight addresses spread out, and the broadcast among adjacent four lanes survives.</p>
+<p><img alt="Lane, address and bank mapping for one scalar read" loading="lazy" decoding="async" fetchpriority="auto" width="1404" height="774" src="/_astro/bank-model.CMh8p7XU_ZsffzO.webp" ></p>
+<p><em>Figure 1: Lanes, addresses and banks for the original and swizzled layouts.</em></p>
+<p>For a fixed row, the XOR is a one-to-one permutation of eight groups, so it never drops or overwrites an element, and the four floats within a group stay contiguous for whole-group copies. Producer and consumer must <em>both</em> use <code>a_index</code>; change only the read side and you fetch a different set of numbers, which isn’t an optimized GEMM. B keeps its original layout in these experiments.</p>
+<p>Enumerating all four warps, 32 k values and eight row offsets: the original layout puts at most eight distinct words per bank, and the XOR layout one. But that’s scalar address arithmetic. The compiler may merge several scalar reads into wide instructions, and the real shared pipeline may split requests again. So below we check with SASS and Nsight Compute, rather than reading “eight addresses” as “eight times the time.”</p>
+<h2 id="fundamentals-why-double-buffering-needs-two-slots">Fundamentals: why double buffering needs two slots</h2>
+<p>With the layout settled, the next step is advancing along K. Single buffering has one copy of the A/B tiles, and the order is rigid:</p>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="text"><code><span class="line"><span>load K chunk t</span></span>
+<span class="line"><span>block barrier: all inputs written</span></span>
+<span class="line"><span>compute every multiply-add for this chunk</span></span>
+<span class="line"><span>block barrier: all consumers done reading</span></span>
+<span class="line"><span>overwrite the same storage with chunk t+1</span></span></code></pre>
+<p>The first barrier protects read-after-write and the second write-after-read. CUDA doesn’t keep the four warps in lockstep: one warp finishing early doesn’t mean the others have let go.</p>
+<p>With only one copy of storage, even if you know where the next tile is, you can’t write it yet, because the current computation is still reading that space. A second slot lets chunks t and t+1 coexist briefly. The loop loads tile 0, then uses the current slot while preparing the other; once the other is ready and the current one is fully read, the two slots swap roles.</p>
+<p><img alt="Writes, consumption and reuse points under double buffering; the x-axis is dependency order, not measured time" loading="lazy" decoding="async" fetchpriority="auto" width="2079" height="756" src="/_astro/buffer-lifetime.B-W9jhDC_Z2vDMXK.webp" ></p>
+<p><em>Figure 2: Slot lifetimes under double buffering.</em></p>
+<p>The async version uses <code>cp.async.cg.shared.global</code>. Data goes from global straight into shared, with no program-visible registers catching the four floats. After issuing the copy, the thread can keep going and wait only when it needs the result. <code>commit_group</code> bundles this thread’s previously issued copies into a group, and <code>wait_group 0</code> waits for all of this thread’s earlier groups to complete (<a href="https://docs.nvidia.com/cuda/parallel-thread-execution/index.html#data-movement-and-conversion-instructions-cp-async">PTX cp.async semantics</a>).</p>
+<p>Put back into the tile loop, the pseudocode matching the implementation is:</p>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="cpp"><code><span class="line"><span style="color:#FF7B72">if</span><span style="color:#E6EDF3"> (tiles </span><span style="color:#FF7B72">></span><span style="color:#79C0FF"> 0</span><span style="color:#E6EDF3">) {</span></span>
+<span class="line"><span style="color:#D2A8FF">    load_tile</span><span style="color:#E6EDF3">(</span><span style="color:#79C0FF">0</span><span style="color:#E6EDF3">, slot0);</span><span style="color:#8B949E">   // each thread handles its own piece of input</span></span>
+<span class="line"><span style="color:#D2A8FF">    commit_group</span><span style="color:#E6EDF3">();</span></span>
+<span class="line"><span style="color:#D2A8FF">    wait_group_0</span><span style="color:#E6EDF3">();</span></span>
+<span class="line"><span style="color:#D2A8FF">    __syncthreads</span><span style="color:#E6EDF3">();</span></span>
+<span class="line"><span style="color:#E6EDF3">}</span></span>
+<span class="line"><span style="color:#FF7B72">for</span><span style="color:#E6EDF3"> (</span><span style="color:#FF7B72">int</span><span style="color:#E6EDF3"> t </span><span style="color:#FF7B72">=</span><span style="color:#79C0FF"> 0</span><span style="color:#E6EDF3">; t </span><span style="color:#FF7B72">&#x3C;</span><span style="color:#E6EDF3"> tiles; </span><span style="color:#FF7B72">++</span><span style="color:#E6EDF3">t) {</span></span>
+<span class="line"><span style="color:#FF7B72">    if</span><span style="color:#E6EDF3"> (t </span><span style="color:#FF7B72">+</span><span style="color:#79C0FF"> 1</span><span style="color:#FF7B72"> &#x3C;</span><span style="color:#E6EDF3"> tiles) {</span></span>
+<span class="line"><span style="color:#D2A8FF">        load_tile</span><span style="color:#E6EDF3">(t </span><span style="color:#FF7B72">+</span><span style="color:#79C0FF"> 1</span><span style="color:#E6EDF3">, other_slot);</span></span>
+<span class="line"><span style="color:#D2A8FF">        commit_group</span><span style="color:#E6EDF3">();</span></span>
+<span class="line"><span style="color:#E6EDF3">    }</span></span>
+<span class="line"><span style="color:#D2A8FF">    compute_tile</span><span style="color:#E6EDF3">(current_slot);</span></span>
+<span class="line"><span style="color:#D2A8FF">    wait_group_0</span><span style="color:#E6EDF3">();</span></span>
+<span class="line"><span style="color:#D2A8FF">    __syncthreads</span><span style="color:#E6EDF3">();</span></span>
+<span class="line"><span style="color:#D2A8FF">    swap</span><span style="color:#E6EDF3">(current_slot, other_slot);</span></span>
+<span class="line"><span style="color:#E6EDF3">}</span></span></code></pre>
+<p>The wait can’t replace the block barrier. A thread only waits for <em>its own</em> copies; it knows neither whether others’ copies are done nor whether another warp is still reading the old slot. Only when every thread has waited and then met at the barrier is it guaranteed both that the next tile is fully written and that the current tile is fully read. Then the next iteration can read the new slot and write an even later chunk into the old one.</p>
+<p>If loading and compute overlapped perfectly, steady-state time per chunk would approach <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>max</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>T</mi><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi></mrow></msub><mo separator="true">,</mo><msub><mi>T</mi><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi></mrow></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\max(T_{\rm load},T_{\rm compute})</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mop">max</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">load</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">compute</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> instead of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">d</mi></mrow></msub><mo>+</mo><msub><mi>T</mi><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">u</mi><mi mathvariant="normal">t</mi><mi mathvariant="normal">e</mi></mrow></msub></mrow><annotation encoding="application/x-tex">T_{\rm load}+T_{\rm compute}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">load</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">compute</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span>. That model ignores the first load, the last compute, synchronization and resource contention; it only shows where the pipelining opportunity is. With only one K chunk there is no steady state at all, so speed differences there can’t be explained by it.</p>
+<h3 id="register-double-buffering-and-a-priming-bug">Register double buffering, and a priming bug</h3>
+<p>Once shared is ready, there’s another layer: shared→register. Each thread fetches eight A and eight B values per k to update 64 accumulators. The implementation uses two sets of register operands: while the current set feeds FMAs, the next one is already loading. This small loop also has to prime the first set:</p>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="cpp"><code><span class="line"><span style="color:#D2A8FF">load_fragment</span><span style="color:#E6EDF3">(</span><span style="color:#8B949E">/* k */</span><span style="color:#79C0FF"> 0</span><span style="color:#E6EDF3">,</span><span style="color:#8B949E"> /* register slot */</span><span style="color:#79C0FF"> 0</span><span style="color:#E6EDF3">);</span></span>
+<span class="line"><span style="color:#FF7B72">for</span><span style="color:#E6EDF3"> (</span><span style="color:#FF7B72">int</span><span style="color:#E6EDF3"> k </span><span style="color:#FF7B72">=</span><span style="color:#79C0FF"> 0</span><span style="color:#E6EDF3">; k </span><span style="color:#FF7B72">&#x3C;</span><span style="color:#79C0FF"> 32</span><span style="color:#E6EDF3">; </span><span style="color:#FF7B72">++</span><span style="color:#E6EDF3">k) {</span></span>
+<span class="line"><span style="color:#FF7B72">    int</span><span style="color:#E6EDF3"> cur </span><span style="color:#FF7B72">=</span><span style="color:#E6EDF3"> k </span><span style="color:#FF7B72">&#x26;</span><span style="color:#79C0FF"> 1</span><span style="color:#E6EDF3">;</span></span>
+<span class="line"><span style="color:#FF7B72">    if</span><span style="color:#E6EDF3"> (k </span><span style="color:#FF7B72">+</span><span style="color:#79C0FF"> 1</span><span style="color:#FF7B72"> &#x3C;</span><span style="color:#79C0FF"> 32</span><span style="color:#E6EDF3">) </span><span style="color:#D2A8FF">load_fragment</span><span style="color:#E6EDF3">(k </span><span style="color:#FF7B72">+</span><span style="color:#79C0FF"> 1</span><span style="color:#E6EDF3">, cur </span><span style="color:#FF7B72">^</span><span style="color:#79C0FF"> 1</span><span style="color:#E6EDF3">);</span></span>
+<span class="line"><span style="color:#D2A8FF">    fma_fragment</span><span style="color:#E6EDF3">(cur);</span></span>
+<span class="line"><span style="color:#E6EDF3">}</span></span></code></pre>
+<p><img alt="Register double buffering needs set 0 initialized before entering the loop" loading="lazy" decoding="async" fetchpriority="auto" width="2172" height="724" src="/_astro/register-prime.DoGnO54o_Z1pyaMr.webp" ></p>
+<p><em>Figure 3: Priming the first register set.</em></p>
+<p>Delete the load before the loop, and the first iteration fills only slot 1 while doing FMAs on slot 0. Zeroing slot 0 is wrong too: it deterministically drops the current tile’s k=0 term. Every new shared tile has to re-prime the first set, or you need a separately designed cross-tile preload.</p>
+<p>One implementation really did have this bug. It was written as “load the next set, compute the current set,” with no priming. At <code>M=128,N=512,K=64</code>, all 65536 outputs exceeded the budget, with max absolute error 0.992814749. Outputs were finite, guards intact and memcheck reported zero errors. <strong>Uninitialized operands don’t necessarily show up as illegal memory accesses</strong>, which is why a numerical reference can’t be skipped. (That run also mixed in other stages, so the whole error can’t be pinned on priming; code review can only establish that this term wasn’t built correctly.)</p>
+<p>There’s a more targeted input for this bug. Make A have a 1 only in the first position of every 32-element K chunk and 0 elsewhere, with B arbitrary. Then the output depends only on the k=0, 32, 64, … contributions, and you can see directly whether each tile’s first term reached the accumulator. That locates pipeline-initialization errors far more easily than throwing more random samples at it.</p>
+<h2 id="making-it-correct-off-the-happy-path">Making it correct off the happy path</h2>
+<p>Take K=33: the second chunk has only one valid k. Take M=129 or N=65: edge output tiles have only some valid positions. The tiled compute stays the same; loads write zero for invalid elements, and write-back checks actual rows and columns.</p>
+<p>Zero-filling is legal for GEMM, since the extra products are zero. But it doesn’t remove cooperating threads’ barriers, and it doesn’t let you downgrade a 16-byte read to “use only one element”: the invalid addresses don’t contribute to the output, but the access itself is still out of bounds.</p>
+<p>So each four-element group first checks range and actual alignment. If all four are in range and the source pointer is 16-byte aligned, it takes the async wide copy; otherwise it fetches valid elements one by one and zero-fills. With K=33 the row pitch is 132 bytes and different rows meet different alignment conditions, so one kernel can mix async copies and ordinary shared writes.</p>
+<p>Both paths write the same XOR layout, to non-overlapping regions. Only after the loop-end async wait and block barrier do consumers read uniformly. If the fallback branch still wrote the plain row layout, aligned matrices would pass and edge elements would be wrong. Range, layout and stage protocol have to be reviewed together.</p>
+<p>The grid has to cover correctly too. This post uses a direct 2D grid of <code>ceil(N/64) × ceil(M/128)</code>. One implementation remapped column tiles in groups of eight:</p>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="text"><code><span class="line"><span>tile_row = blockIdx.x >> 3</span></span>
+<span class="line"><span>tile_col = blockIdx.y * 8 + (blockIdx.x &#x26; 7)</span></span></code></pre>
+<p>but didn’t exclude the padding tiles this created. N=64 needs only one column, yet the extra column blocks still read B and wrote C, producing 82 memcheck errors on <code>128×64×64</code>; the first reported was a 16-byte async out-of-bounds read. The remapping might improve cache locality between blocks, provided it’s still a correct mapping onto valid output tiles. Here I used the direct grid and didn’t treat the out-of-bounds implementation as a performance baseline.</p>
+<p>The four formal variants plus one compatibility entry pass 240 FP64 numerical checks, including K=0, tails, 0–3 float offsets and first-term-only inputs. Each of the four variants also passes 48 memcheck and 48 racecheck runs with zero errors and zero hazards. These are prerequisites for the timings below; shapes and budgets are in the appendix.</p>
+<h2 id="four-implementations-one-step-apart">Four implementations, one step apart</h2>
+<p>Now the four implementations side by side. They share the thread mapping above, the 8×8 outer product and register fragment priming, and each pair of neighbors differs in just one design choice:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Short name</th><th>A’s shared layout</th><th align="right">Shared slots</th><th>global→shared</th></tr></thead><tbody><tr><td>raw single</td><td>Plain row layout</td><td align="right">1</td><td>Synchronous float4, scalar at edges</td></tr><tr><td>swizzle single</td><td>4-element-group XOR</td><td align="right">1</td><td>Same</td></tr><tr><td>swizzle double</td><td>4-element-group XOR</td><td align="right">2</td><td>Synchronous load into the next slot</td></tr><tr><td>async double</td><td>4-element-group XOR</td><td align="right">2</td><td>cp.async for valid groups, scalar at edges</td></tr></tbody></table>
+<p>I didn’t test a raw async version or three- or four-stage pipelines, so this isn’t a combinatorial search. What it can answer is what each step along this rewrite path cost and what it bought.</p>
+<h3 id="what-the-compiler-emitted">What the compiler emitted</h3>
+<p>The async version keeps <code>cp.async.cg.shared.global</code>, <code>cp.async.commit_group</code>, <code>cp.async.wait_group 0</code> and <code>bar.sync 0</code> in PTX; in SM120 SASS they become:</p>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="text"><code><span class="line"><span>LDGSTS.E.BYPASS.128 ...</span></span>
+<span class="line"><span>LDGDEPBAR</span></span>
+<span class="line"><span>... compute and other instructions ...</span></span>
+<span class="line"><span>DEPBAR.LE SB0, 0x0</span></span></code></pre>
+<p>That confirms the async global→shared copy, commit and wait really made it into machine code. The static disassembly has five LDGSTS sites, two commits and two waits across the preload, the loop and branches. Site counts aren’t per-tile execution counts, and they don’t say how much copying is actually hidden behind compute.</p>
+<p>Compiled resources changed at the same time:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Version</th><th align="right">Registers/thread</th><th align="right">Program shared/block</th><th align="right">Spill load/store</th></tr></thead><tbody><tr><td>raw single</td><td align="right">128</td><td align="right">24,576 B</td><td align="right">0 / 0</td></tr><tr><td>swizzle single</td><td align="right">168</td><td align="right">24,576 B</td><td align="right">0 / 0</td></tr><tr><td>swizzle double</td><td align="right">211</td><td align="right">49,152 B</td><td align="right">0 / 0</td></tr><tr><td>async double</td><td align="right">211</td><td align="right">49,152 B</td><td align="right">0 / 0</td></tr></tbody></table>
+<p>Introducing the XOR costs the whole kernel 40 more registers. One XOR doesn’t need 40 registers; the address expressions, live ranges and scheduling all changed together. Two slots then double the storage, and registers reach 211. Zero spills only means nothing overflowed into extra storage; it doesn’t mean residency came for free.</p>
+<h3 id="what-the-hardware-counted">What the hardware counted</h3>
+<p>Nsight Compute sampling on 1024³, back to the bank derivation:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Version</th><th align="right">shared wavefront</th><th align="right">ideal wavefront</th><th align="right">extra wavefront</th><th align="right">achieved occupancy</th></tr></thead><tbody><tr><td>raw single</td><td align="right">13,369,344</td><td align="right">9,175,040</td><td align="right">4,194,304</td><td align="right">28.86%</td></tr><tr><td>swizzle single</td><td align="right">7,208,960</td><td align="right">7,208,960</td><td align="right">0</td><td align="right">22.35%</td></tr><tr><td>swizzle double</td><td align="right">7,208,960</td><td align="right">7,208,960</td><td align="right">0</td><td align="right">14.81%</td></tr><tr><td>async double</td><td align="right">7,208,960</td><td align="right">7,208,960</td><td align="right">0</td><td align="right">15.03%</td></tr></tbody></table>
+<p><img alt="Shared service counts and actual residency" loading="lazy" decoding="async" fetchpriority="auto" width="1820" height="740" src="/_astro/ncu-wavefront-occupancy.Bry4_cbe_yCr2F.webp" ></p>
+<p><em>Figure 4: Wavefronts drop to ideal with the swizzle; occupancy drops too.</em></p>
+<p>Think of a wavefront as a unit of service in the shared pipeline. Even a conflict-free wide read may take several ideal wavefronts; “extra” is actual minus ideal computed from real instructions and participating threads, not total minus one. The main reads are <code>LDS.128</code> in SASS, four floats per lane, which don’t fit the one-scalar-read eight-address model from before.</p>
+<p>Exporting per-SASS-address counts from raw’s Source page, the excess concentrates at 64 <code>LDS.128</code> sites. For example, <code>LDS.128 R20,[R4]</code> has actual 131072 and ideal 65536; the differences at all 64 sites sum to 4194304, matching the total exactly. This real wide instruction’s actual/ideal is 2, not the 8 from scalar deduplication.</p>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="powershell"><code><span class="line"><span style="color:#E6EDF3">ncu </span><span style="color:#FF7B72">--</span><span style="color:#E6EDF3">import pipeline</span><span style="color:#FF7B72">-</span><span style="color:#E6EDF3">raw.ncu</span><span style="color:#FF7B72">-</span><span style="color:#E6EDF3">rep </span><span style="color:#FF7B72">--</span><span style="color:#E6EDF3">page source </span><span style="color:#FF7B72">--</span><span style="color:#E6EDF3">print</span><span style="color:#FF7B72">-</span><span style="color:#E6EDF3">source sass </span><span style="color:#FF7B72">`</span></span>
+<span class="line"><span style="color:#FF7B72">  --</span><span style="color:#E6EDF3">metrics memory_l1_wavefronts_shared</span><span style="color:#FF7B72">,</span><span style="color:#E6EDF3">memory_l1_wavefronts_shared_ideal </span><span style="color:#FF7B72">--</span><span style="color:#E6EDF3">csv</span></span></code></pre>
+<p>The recheck order matters: pick the same template instance, take differences by SASS address, then plug the target read’s lane addresses back into the formula. That’s how you say exactly where an optimization acts, rather than screenshotting a “fewer conflicts” percentage (<a href="https://docs.nvidia.com/nsight-compute/ProfilingGuide/index.html">NCU metrics and SourceCounters</a>).</p>
+<p>Extra wavefronts drop to zero for all three XOR implementations, while the independent hardware counter <code>l1tex__data_bank_conflicts_pipe_lsu_mem_shared_op_ld.sum</code> drops from raw’s 6297071 to swizzle single’s 7399. That 7399 still isn’t zero. I haven’t traced the remainder item by item, so the two measures can’t be combined into “the kernel has no bank conflicts at all.”</p>
+<p>Meanwhile, register block limit falls from 4 to 3 to 2 and shared block limit from 4 to 2, and achieved occupancy falls with them. The layout really did improve, and there’s also less resident work available to hide waiting. Total time depends on both sides, plus other instruction changes mixed in.</p>
+<h2 id="the-timings-why-removing-conflicts-slowed-1024">The timings: why removing conflicts slowed 1024³</h2>
+<p>Device time comes from an independent warm benchmark: three rounds of 30 batches per configuration, with the median of round medians as the center. NCU uses kernel replay with default cache and clock control, only to explain accesses; timings don’t come from its replay.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="right">M=N=K</th><th align="right">raw single / ms</th><th align="right">swizzle single / ms</th><th align="right">swizzle double / ms</th><th align="right">async double / ms</th></tr></thead><tbody><tr><td align="right">512</td><td align="right">0.07244</td><td align="right">0.06988</td><td align="right">0.06890</td><td align="right">0.05080</td></tr><tr><td align="right">1024</td><td align="right">0.30379</td><td align="right">0.36307</td><td align="right">0.33876</td><td align="right">0.29852</td></tr><tr><td align="right">2048</td><td align="right">2.33407</td><td align="right">2.47729</td><td align="right">2.82787</td><td align="right">2.25238</td></tr></tbody></table>
+<p><img alt="Four layouts and load methods under the same compute mapping" loading="lazy" decoding="async" fetchpriority="auto" width="1332" height="1512" src="/_astro/pipeline-ablation.BEu2hRpB_Z16HRAX.webp" ></p>
+<p><em>Figure 5: The four implementations across three square sizes.</em></p>
+<p>On 1024³, XOR single buffering is about 19.5% slower. raw’s three rounds span 0.30325–0.30822 ms and swizzle’s 0.36302–0.36312 ms, with no overlap. Clearing the target reads’ extra wavefronts doesn’t offset the other costs of rewriting the layout. More registers and lower residency are concrete leads, but the current experiments can’t decompose that 19.5%.</p>
+<p>Adding the second slot helps 1024³, yet 2048³ goes from 2.47729 ms to 2.82787 ms. A second slot gives room to load ahead and also consumes another copy of resources. Switching to async copies brings 2048³ down to 2.25238 ms, about 20.4% less time than synchronous double buffering with the same layout, but only about 3.5% less than the original raw single’s 2.33407 ms. The first comparison measures swapping the copy mechanism; the second measures the whole design. Those two gains shouldn’t be blended.</p>
+<p>Short K tests whether we’re crediting every change to pipeline overlap. <code>128×64×32</code> has one output tile and one K chunk, nothing to prefetch, and async is 11.78 µs against raw’s 12.54 µs. That small difference only says the copy path and compiled schedule changed overall; it’s not evidence of cross-tile overlap. At K=64 the two are 12.71 and 12.66 µs, with overlapping three-round ranges.</p>
+<p><img alt="Device time for small shapes and time including host round trip" loading="lazy" decoding="async" fetchpriority="auto" width="1404" height="864" src="/_astro/pipeline-small.DraleJFV_ZClMtn.webp" ></p>
+<p><em>Figure 6: Small shapes, device-only and with host round trip.</em></p>
+<p>Counting pageable host transfers and synchronization, microsecond-level kernel differences shrink further within total waiting. The end-to-end times in the figure exclude allocation, compilation and handle creation, and shouldn’t be mixed with repeated calls on GPU-resident inputs.</p>
+<p>Eight more shapes check whether the tile fits; speed ratios are relative to each row’s own raw single, from an independent measurement batch:</p>
+<p><img alt="Relative performance on skinny and short-K matrices" loading="lazy" decoding="async" fetchpriority="auto" width="1404" height="1007" src="/_astro/shape-map.Bye2q7WX_Z1F1JnL.webp" ></p>
+<p><em>Figure 7: Relative speed by shape.</em></p>
+<p><code>8192×64×128</code> fills output tiles exactly, with raw and async at 38.822 and 34.453 µs. Swap M and N and there are only 64 valid output rows, so half of each 128-row tile sits empty, and the numbers become 39.771 and 39.395 µs. Same FLOPs; the tile mapping no longer fits. <code>512×512×16</code> likewise has no steady-state pipeline, and 14.448→12.855 µs can’t be explained as cross-chunk overlap either.</p>
+<p>On 4096³, raw’s center is 23.958 ms and async’s 24.898 ms, with three-round ranges of 22.838–28.531 and 22.793–32.870 ms. The variation is larger than the roughly 4% difference between centers, so there’s no clear verdict that async is slower. It’s still faster than same-layout synchronous double buffering’s 31.950 ms, but that doesn’t show the XOR async design as a whole beats the plain layout.</p>
+<h2 id="what-this-does-and-doesnt-show">What this does and doesn’t show</h2>
+<ul>
+<li><strong>It shows</strong> that the XOR swizzle eliminates the extra shared wavefronts it targets (4,194,304 → 0), traced to specific <code>LDS.128</code> sites.</li>
+<li><strong>It shows</strong> that the same change raised registers from 128 to 168 and lowered occupancy, and that the kernel got 19.5% slower on 1024³ with non-overlapping ranges.</li>
+<li><strong>It shows</strong> that async copies beat synchronous double buffering by about 20% on 2048³, but the whole design beats the original by only about 3.5%, and nothing is clearly decided on 4096³.</li>
+<li><strong>It shows</strong> two real correctness traps, an unprimed register buffer that passes memcheck and a remapped grid that reads out of bounds, and how targeted inputs catch them.</li>
+<li>It doesn’t decompose copy, wait and compute cycles, and the residual 7399 hardware bank conflicts aren’t traced. TMA, other GPUs, fixed clocks and production call chains weren’t tested.</li>
+</ul>
+<h2 id="my-open-question">My open question</h2>
+<p>So here’s what the facts say: trying techniques on an operator without first simulating it against a targeted roofline model is pretty much meaningless. At this point I did try to build a roofline model and work through the math, but the relationships I derived were enormously complicated, and nudging a few parameter values made the arithmetic intensity swing wildly.</p>
+<p>So I’d really appreciate it if anyone passing by could point me in the right direction. For a given operator, is telling what limits it something you can only judge from experience, or by just running a baseline kernel and reading Nsight-style results? And does deriving formulas from basic hardware parameters have real practical value in operator design?</p>
+<details>
+<summary>Source interfaces, test scope and reproduction commands</summary>
+<blockquote>
+<p>📝 <strong>Note:</strong> Paths in this appendix such as <code>bench_mur/</code> and <code>rep_mur/</code> are in my private research repository, so they aren’t public; they’re listed so each result can be traced. The CUDA kernels the post cites are public in <a href="https://github.com/Murmurwkk/cuda-operators">Murmurwkk/cuda-operators</a>.</p>
+</blockquote>
+<h3 id="environment-and-measurement-method">Environment and measurement method</h3>
+<p>Test device: RTX 5070 Laptop GPU, 8 GB, SM120, driver 610.88; built with CUDA Toolkit 13.1.115 and MSVC 2022. Environment cross-checks recorded runtime API version 13.3. Since CUDA 13 the Windows runtime can ship with the display driver, so it can differ from the build Toolkit; see the <a href="https://docs.nvidia.com/cuda/cuda-runtime-api/cuda_runtime_api/group__CUDART____VERSION.html">CUDA Runtime API versioning notes</a>. The original GEMM environment records queried nvcc and the driver; the runtime field comes from a separate environment check.</p>
+<p>The performance protocol follows the previous post: 20 device warm-ups, 10 pilot runs to estimate repeats per batch, a target of about 20 ms, 1–2000 repeats per batch, 30 batches, 3 rounds with shuffled task order. Data is reused and L2 isn’t flushed. End-to-end timing is separate and includes pageable host H2D (A, B), the kernel, D2H (C) and synchronization, excluding allocation, compilation and cuBLAS handle creation. Table centers are the median of three round medians; error bars in figures show the min–max of the three round medians, not statistical confidence intervals.</p>
+<p>The four implementations are compiled into separate executables and don’t link against each other’s old <code>solve</code>. GPU experiments run serially; start and end temperatures and clocks are recorded, but clocks weren’t locked and the laptop’s full power state wasn’t controlled.</p>
+<h3 id="interfaces-and-correctness-checks">Interfaces and correctness checks</h3>
+<p>All inputs are contiguous row-major FP32 matrices <code>A[M,K]</code> and <code>B[K,N]</code>, with output <code>C[M,N]=A×B</code>. Kernels use ordinary FP32 FMA, no Tensor Cores and no TF32. Only this explicit layout contract is supported; arbitrary strides, input/output aliasing and NaN/Inf special semantics are outside this validation.</p>
+<p>The shared implementation is in <a href="https://github.com/Murmurwkk/cuda-operators/blob/main/gemm/gemm_pipeline.cuh"><code>gemm/gemm_pipeline.cuh</code></a>. The two old files keep their own independently compilable <code>solve</code> entries, so same-named symbols in the repository don’t link against each other:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>File</th><th>Argument order kept</th><th>Purpose</th></tr></thead><tbody><tr><td><code>mulmatrix_let_merged.cu</code></td><td><code>solve(A,B,C,M,N,K)</code></td><td>Original merged calling convention; also provides an async launch with a stream</td></tr><tr><td><code>mulmatrix_let2.cu</code></td><td><code>solve(A,B,C,M,K,N)</code></td><td>Keeps the dimension order the old implementation actually interpreted; the old function used to swap the last two internally</td></tr></tbody></table>
+<p><code>solve</code> still returns synchronously for compatibility with old callers; timing uses the stream launch without host synchronization after every kernel. The two entries have different dimension orders, so the test wrapper adapts them explicitly; copying a uniform-looking declaration doesn’t make them the same ABI.</p>
+<p>The old code was archived as-is with SHA-256 hashes, then the shared tile and consumer mapping were extracted to rebuild separable comparisons. The new implementation fixes boundaries, initial registers and the stage protocol, and drops the old eight-column grid remapping. Because more than one thing changed, differences between old and fixed versions aren’t used for single-optimization performance attribution.</p>
+<p>The full CPU FP64 checks cover 12 shapes, in M, N, K order:</p>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="text"><code><span class="line"><span>1×1×0, 1×1×1, 7×13×3, 15×17×15,</span></span>
+<span class="line"><span>63×65×31, 64×64×32, 65×63×33, 127×129×17,</span></span>
+<span class="line"><span>128×128×32 (one aligned, one offset), 129×131×65, 256×256×129</span></span></code></pre>
+<p>Pointer offsets cover 0, 1, 2 and 3 floats. Each shape has four distributions: random, all zeros, alternating signs and first-element-per-K-tile nonzero. Across the four performance versions plus the let2 compatibility entry, all 240 checks pass. Outputs are pre-filled with NaN and guarded before and after, separately checking for missed writes, non-finite values and sentinel damage from out-of-bounds writes.</p>
+<p>The CPU reference accumulates term by term in double, with an error budget of <code>1e-6 + 16*FLT_EPSILON*sum(abs(Aik*Bkj))</code>. This is an explicit budget for this experiment, not a floating-point error theorem for every K and input distribution. Large shapes in the performance experiments additionally check 257 deterministic positions against a CPU FP64 reference and compare against full cuBLAS pedantic FP32 output, with a cuBLAS budget of <code>3e-4 + 3e-4*abs(reference)</code>. Large matrices didn’t get a full CPU FP64 reference; their validation is a full GPU comparison plus a sampled high-precision reference.</p>
+<p>Compute Sanitizer runs 48 memcheck and 48 racecheck cases for each of the four versions, all with zero errors and zero hazards. They cover short K, multiple K tiles, offsets and tails. Finite tests can’t prove correctness for all inputs and architectures, but they cover several independent failure types beyond ordinary numerical tests. Both checks for <code>gemm_8</code> were rerun once, and those logs pass too.</p>
+<p>The old <code>mulmatrix_let2.cu</code> has a truncated loop statement and reports 10 errors when compiled as-is, so it wasn’t used as a runnable old baseline. That compile log, the failure record for the merged version with only a type alias added, and the fixed version’s results are saved separately in the experiment directory.</p>
+<h3 id="reproduction-commands-and-data-locations">Reproduction commands and data locations</h3>
+<p>Source lives only in the working repository; this page gives the necessary excerpts and results. Experiment scripts are in <code>bench_mur/gemm/</code>, and raw failure samples, source snapshots, hashes, environment, per-batch CSVs and disassembly are in <code>rep_mur/blog-rewrite/gemm/</code>. This post’s timing data is stored separately in its <code>pipeline/</code> subdirectory so it doesn’t overwrite the previous post’s.</p>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="powershell"><code><span class="line"><span style="color:#E6EDF3">.</span><span style="color:#FF7B72">/</span><span style="color:#E6EDF3">bench_mur</span><span style="color:#FF7B72">/</span><span style="color:#E6EDF3">gemm</span><span style="color:#FF7B72">/</span><span style="color:#E6EDF3">build.ps1 </span><span style="color:#FF7B72">-</span><span style="color:#E6EDF3">Variants </span><span style="color:#79C0FF">8</span><span style="color:#FF7B72">,</span><span style="color:#79C0FF">9</span><span style="color:#FF7B72">,</span><span style="color:#79C0FF">10</span><span style="color:#FF7B72">,</span><span style="color:#79C0FF">11</span><span style="color:#FF7B72">,</span><span style="color:#79C0FF">12</span></span>
+<span class="line"><span style="color:#E6EDF3">python bench_mur</span><span style="color:#FF7B72">/</span><span style="color:#E6EDF3">gemm</span><span style="color:#FF7B72">/</span><span style="color:#E6EDF3">run.py </span><span style="color:#FF7B72">--</span><span style="color:#E6EDF3">phase check </span><span style="color:#FF7B72">--</span><span style="color:#E6EDF3">suite pipeline </span><span style="color:#FF7B72">--</span><span style="color:#E6EDF3">variants </span><span style="color:#79C0FF">8</span><span style="color:#FF7B72">,</span><span style="color:#79C0FF">9</span><span style="color:#FF7B72">,</span><span style="color:#79C0FF">10</span><span style="color:#FF7B72">,</span><span style="color:#79C0FF">11</span><span style="color:#FF7B72">,</span><span style="color:#79C0FF">12</span></span>
+<span class="line"><span style="color:#E6EDF3">python bench_mur</span><span style="color:#FF7B72">/</span><span style="color:#E6EDF3">gemm</span><span style="color:#FF7B72">/</span><span style="color:#E6EDF3">run.py </span><span style="color:#FF7B72">--</span><span style="color:#E6EDF3">phase bench </span><span style="color:#FF7B72">--</span><span style="color:#E6EDF3">suite pipeline </span><span style="color:#FF7B72">--</span><span style="color:#E6EDF3">variants </span><span style="color:#79C0FF">8</span><span style="color:#FF7B72">,</span><span style="color:#79C0FF">9</span><span style="color:#FF7B72">,</span><span style="color:#79C0FF">10</span><span style="color:#FF7B72">,</span><span style="color:#79C0FF">11</span></span>
+<span class="line"><span style="color:#E6EDF3">D:</span><span style="color:#FF7B72">/</span><span style="color:#E6EDF3">python</span><span style="color:#FF7B72">/</span><span style="color:#79C0FF">python.exe</span><span style="color:#E6EDF3"> bench_mur</span><span style="color:#FF7B72">/</span><span style="color:#E6EDF3">gemm</span><span style="color:#FF7B72">/</span><span style="color:#E6EDF3">plot_pipeline.py</span></span></code></pre>
+<p>Here 8 is async double, 9 swizzle single, 10 raw single, 11 swizzle double, and 12 is only for verifying the old let2 entry’s compatibility. Machine paths are hard-coded in the build script; in another environment, adjust the toolchain, rebuild and revalidate rather than reusing these binaries.</p>
+<p>The second batch shared by both GEMM posts has 10 variants, 240 pre-timing correctness checks and 14,400 timing records, using the original binaries with three rounds of 30 batches. The data is in <code>rep_mur/blog-rewrite/style-v2/gemm/</code>, aggregated independently from the first batch.</p>
+<p>NCU reports can verify shared banks, wavefronts and actual residency, and trace extra wavefronts by SASS address. There’s currently no independent cycle breakdown of copy, wait and compute, and TMA, other GPUs, fixed clocks or production model call chains weren’t measured.</p>
+<p>Assembly, NCU reports and CSVs are in <code>rep_mur/blog-rewrite/style-v3/profiling/</code>. <code>bench_mur/editorial/style-v3/profile_static.py</code> extracts PTX/SASS from the timed binaries; <code>collect_ncu.ps1</code> samples serially; <code>read_ncu.py</code> keeps original metric names and units; <code>plot_profile.py</code> plots from exported data. Binaries and report exports are all hashed.</p>
+</details></div> </article> </main> <footer> <div class="shell footer-inner"> <span>© 2026 MUR · Built for deep systems work.</span> </div> </footer> <script type="module" src="/_astro/BaseLayout.astro_astro_type_script_index_0_lang.B_HmufRK.js"></script> </body> </html>

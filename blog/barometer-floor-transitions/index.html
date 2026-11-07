@@ -1,0 +1,949 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="dark"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><meta name="generator" content="Astro v5.18.2"><meta name="description" content="All 848 reference points had the right floor, while one route's height spanned 20 m without changing floors. How pressure became continuous height inside the shared filter, and what each fix cost."><meta name="theme-color" content="#070b17"><meta property="og:type" content="website"><meta property="og:title" content="Right Floor, Wrong Height: A Barometer in Indoor Navigation · Murmurwkk 的个人技术主页"><meta property="og:description" content="All 848 reference points had the right floor, while one route's height spanned 20 m without changing floors. How pressure became continuous height inside the shared filter, and what each fix cost."><meta property="og:url" content="https://murmurwkk.github.io/blog/barometer-floor-transitions/"><link rel="canonical" href="https://murmurwkk.github.io/blog/barometer-floor-transitions/"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="alternate" type="application/rss+xml" title="Murmurwkk 的个人技术主页" href="/rss.xml"><title>Right Floor, Wrong Height: A Barometer in Indoor Navigation · Murmurwkk 的个人技术主页</title><script>
+      (() => {
+        const saved = localStorage.getItem('theme');
+        document.documentElement.dataset.theme = saved === 'light' ? 'light' : 'dark';
+      })();
+    </script><link rel="stylesheet" href="/_astro/about.BxjwpyE4.css"></head> <body style="--site-background-image: url(/background.webp)"> <div class="sakura-layer" aria-hidden="true"></div> <div class="ambient ambient-one"></div> <div class="ambient ambient-two"></div> <header class="site-header"> <div class="shell header-top"> <a class="brand" href="/" aria-label="Murmurwkk 的个人技术主页"> <span class="brand-mark"><img src="/_astro/icon.DgMJSaVH.gif" alt=""></span> <span class="brand-copy"><strong>Murmurwkk</strong><small>AI Systems Lab</small></span> </a> <nav class="profile-tabs" aria-label="个人主页导航"> <a href="/"> <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0ZM3.5 7.25h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1 0-1.5ZM8 3a.75.75 0 0 1 .75.75v8.5a.75.75 0 0 1-1.5 0v-8.5A.75.75 0 0 1 8 3Z"></path></svg>   <span>Overview</span>  </a><a href="/blog/" aria-current="page">  <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M0 1.75A.75.75 0 0 1 .75 1h4.5C6.35 1 7.35 1.42 8 2.1A3.76 3.76 0 0 1 10.75 1h4.5a.75.75 0 0 1 .75.75v11.5a.75.75 0 0 1-.75.75h-4.5c-.8 0-1.54.31-2.1.87a.92.92 0 0 1-1.3 0A2.97 2.97 0 0 0 5.25 14H.75a.75.75 0 0 1-.75-.75V1.75Zm1.5.75v10h3.75c.73 0 1.41.17 2 .48V3.63A2.24 2.24 0 0 0 5.25 2.5H1.5Zm7.25 1.13v9.35a4.46 4.46 0 0 1 2-.48h3.75v-10h-3.75a2.24 2.24 0 0 0-2 1.13Z"></path></svg>  <span>blog</span>  </a><a href="/about/">   <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 5.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM8 2a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm-5.5 11c0-1.73 2.44-2.75 5.5-2.75s5.5 1.02 5.5 2.75v.25a.75.75 0 0 1-1.5 0V13c0-.43-1.33-1.25-4-1.25S4 12.57 4 13v.25a.75.75 0 0 1-1.5 0V13Z"></path></svg> <span>About</span>  </a> </nav> <div class="header-actions"> <a class="header-github-link header-zhihu-link" href="https://www.zhihu.com/people/murmurmur-38" target="_blank" rel="noreferrer"> <strong class="zhihu-mark" aria-hidden="true">知</strong> <span>知乎</span> <span aria-hidden="true">↗</span> </a> <a class="header-github-link" href="https://github.com/dashboard" target="_blank" rel="noreferrer"> <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.64 0 8.13c0 3.59 2.29 6.64 5.47 7.71.4.08.55-.17.55-.39 0-.19-.01-.83-.01-1.51-2.01.38-2.53-.5-2.69-.96-.09-.23-.48-.96-.82-1.15-.28-.15-.68-.53-.01-.54.63-.01 1.08.59 1.23.83.72 1.23 1.87.88 2.33.67.07-.53.28-.88.51-1.08-1.78-.21-3.64-.91-3.64-4.02 0-.89.31-1.62.82-2.19-.08-.2-.36-1.04.08-2.16 0 0 .67-.22 2.2.84A7.5 7.5 0 0 1 8 3.91a7.4 7.4 0 0 1 2 .27c1.53-1.06 2.2-.84 2.2-.84.44 1.12.16 1.96.08 2.16.51.57.82 1.3.82 2.19 0 3.12-1.87 3.81-3.65 4.02.29.25.54.74.54 1.5 0 1.08-.01 1.95-.01 2.22 0 .22.15.47.55.39A8.13 8.13 0 0 0 16 8.13C16 3.64 12.42 0 8 0Z"></path></svg> <span>GitHub</span> <span aria-hidden="true">↗</span> </a> <button class="theme-toggle" type="button" aria-label="切换深浅主题" title="切换主题"> <svg class="theme-icon theme-icon-sun" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11.25A3.25 3.25 0 1 0 8 4.75a3.25 3.25 0 0 0 0 6.5ZM8 .5a.75.75 0 0 1 .75.75v1a.75.75 0 0 1-1.5 0v-1A.75.75 0 0 1 8 .5Zm0 12.5a.75.75 0 0 1 .75.75v1a.75.75 0 0 1-1.5 0v-1A.75.75 0 0 1 8 13ZM.5 8a.75.75 0 0 1 .75-.75h1a.75.75 0 0 1 0 1.5h-1A.75.75 0 0 1 .5 8Zm12.5 0a.75.75 0 0 1 .75-.75h1a.75.75 0 0 1 0 1.5h-1A.75.75 0 0 1 13 8ZM2.7 2.7a.75.75 0 0 1 1.06 0l.7.7A.75.75 0 0 1 3.4 4.46l-.7-.7a.75.75 0 0 1 0-1.06Zm8.84 8.84a.75.75 0 0 1 1.06 0l.7.7a.75.75 0 0 1-1.06 1.06l-.7-.7a.75.75 0 0 1 0-1.06ZM13.3 2.7a.75.75 0 0 1 0 1.06l-.7.7a.75.75 0 1 1-1.06-1.06l.7-.7a.75.75 0 0 1 1.06 0ZM4.46 11.54a.75.75 0 0 1 0 1.06l-.7.7a.75.75 0 0 1-1.06-1.06l.7-.7a.75.75 0 0 1 1.06 0Z"></path></svg> <svg class="theme-icon theme-icon-moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.2 1.05a.75.75 0 0 1 .14.8 5.63 5.63 0 0 0 7.8 7.08.75.75 0 0 1 .98.93A7.2 7.2 0 1 1 5.4.9a.75.75 0 0 1 .8.15ZM4.78 2.98a5.7 5.7 0 1 0 8.14 7.77 7.14 7.14 0 0 1-8.14-7.77Z"></path></svg> </button> </div> <span class="build-version" title="Built from release at commit b1257f43b417aa74c52aaefe76b17351ef7c8372">live · b1257f4</span> </div> </header> <script type="module">const o=document.querySelector(".theme-toggle");o?.addEventListener("click",()=>{const e=(document.documentElement.dataset.theme??"dark")==="dark"?"light":"dark";document.documentElement.dataset.theme=e,localStorage.setItem("theme",e)});const n=document.querySelector(".site-header");let d=window.scrollY,s=0;const r=()=>{const t=Math.max(window.scrollY,0),e=t-d;t<=12||e<-4?n?.classList.remove("is-hidden"):e>4&&n?.classList.add("is-hidden"),d=t,s=0};window.addEventListener("scroll",()=>{s||(s=window.requestAnimationFrame(r))},{passive:!0});n?.addEventListener("focusin",()=>n.classList.remove("is-hidden"));</script>  <main> <article class="article"> <header class="article-header"> <p class="eyebrow">Article</p> <h1>Right Floor, Wrong Height: A Barometer in Indoor Navigation</h1> <p class="article-description">All 848 reference points had the right floor, while one route&#39;s height spanned 20 m without changing floors. How pressure became continuous height inside the shared filter, and what each fix cost.</p> <div class="post-meta"> 更新于 <time datetime="2026-11-06T14:39:48.000Z">2026/11/6</time> · 19 个章节
+</div> <div class="tag-row" style="margin-top: 16px"> <span class="tag">#barometer</span><span class="tag">#floor estimation</span><span class="tag">#inertial navigation</span><span class="tag">#factor graphs</span><span class="tag">#error attribution</span> </div> </header> <div class="prose"><p>The result that first convinced us the floor module was in good shape was a very pretty one: across all 72 logs, every one of 848 reference points matched its floor. When we went back and checked later, the same historical outputs contained a route labeled F3 the whole time whose height spanned 6.541 m, and another route that never changed floors whose height spanned 20.207 m.</p>
+<p>Those two results don’t contradict each other. The first checks <em>which floor the person is on</em>; the second checks <em>how the trajectory’s vertical coordinate behaves</em>. At the time, we’d only really solved the first.</p>
+<p>What came next wasn’t simply “plug the barometer into the graph and we’re done.” First, horizontal correction tilted the route into a slope. Then, with pressure constraints added, real stair climbs still got flattened. After we fixed the statistical meaning of historical states, multi-meter sawtooth artifacts disappeared, while some horizontal reference points got worse. Only once the pressure reference, time-correlated noise, inertial state and history revisions were all put into one computation could we start telling which problems came from the sensor, which from the motion model, and which were just software mixing up two different meanings of “history.”</p>
+<p>This post follows those problems in the order they appeared, got pulled apart by evidence, and were changed. <strong>The order reflects the development process; it doesn’t mean each later version beats the earlier one on every metric.</strong> The text doesn’t keep a dated diary; times in the figures are relative seconds within each log, kept so different results can be compared over the same stretch of motion.</p>
+<p>Here’s the route through it:</p>
+<ul>
+<li><strong><a href="#part-1-from-pressure-to-floors">Part 1</a>:</strong> the original floor-change design, the pressure reference, transition events, and why the old acceptance tests missed height drift.</li>
+<li><strong><a href="#part-2-pressure-as-a-continuous-height-measurement">Part 2</a>:</strong> pressure enters the continuous trajectory for the first time: finite rotations, shared-reference correlation and sampling coverage.</li>
+<li><strong><a href="#part-3-real-stairs">Part 3</a>:</strong> why real stairs got flattened: Motion’s vertical response, the semantics of historical states, and what the fix cost.</li>
+<li><strong><a href="#part-4-pressure-inside-the-shared-filter">Part 4</a>:</strong> building a shared pressure posterior: feedback into the future, bounded noise memory, and re-running the real network.</li>
+<li><strong><a href="#part-5-back-to-flat-floors-and-into-the-runtime">Part 5</a>:</strong> the full history exposes new problems, and the fix meets the runtime: same-floor dips, horizontal jumps, releasing old nodes, an old gate blocking the right posterior, lost startup references, the full control run and its performance limits.</li>
+<li><strong><a href="#part-6-putting-it-together">Part 6</a>:</strong> how the pieces fit, the reusable lessons, what’s still unsolved, and the evidence index.</li>
+</ul>
+<p><em>On narrow screens, wide tables and flowcharts scroll horizontally within their own area. Data figures keep their original resolution and can be zoomed; key numbers are also listed in the tables.</em></p>
+<h2 id="before-we-start-what-was-actually-measured">Before we start: what was actually measured</h2>
+<p>Before getting to algorithms, we need to separate five kinds of data that often get mixed up.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Name</th><th>What it actually is</th><th>What it can answer</th><th>What it can’t answer directly</th></tr></thead><tbody><tr><td>Raw PRES</td><td>Pressure samples recorded by the phone</td><td>Whether and when pressure changed</td><td>Which floor the person is on, or the actual altitude</td></tr><tr><td>Pressure relative height</td><td>Height change converted relative to some pressure reference</td><td>Under the model’s assumptions, what rise or fall pressure supports</td><td>Independent, unbiased continuous height ground truth</td></tr><tr><td>Floor</td><td>The floor number committed by a state machine or discrete graph</td><td>Which floor is currently confirmed</td><td>Whether the continuous U coordinate within that floor is right</td></tr><tr><td>Motion / native height</td><td>The vertical state computed from inertial data and other observations</td><td>The current model’s explanation of continuous motion</td><td>That it must equal the pressure curve or true height</td></tr><tr><td>POSI reference points</td><td>Sparse position and floor records in the official logs</td><td>Horizontal error and floor correctness at aligned times</td><td>A dense route between points, or continuous phone height</td></tr></tbody></table>
+<p>EN here means east and north; U means up. The logs are trials from the IPIN dataset, and we name them by what happens in them: the <strong>stairs walk</strong> (T25, session01/SA52) changes floor six times; the <strong>flat-floor walk</strong> (T31, session02/SA52) and a <strong>second flat-floor walk</strong> (T32) stay on one floor; and the <strong>control walk</strong> (T21) is the run used for the runtime checks in Part 5. Some figures still label them by those short IDs. The four flat-floor snapshots later on are four historical solve segments of the <em>same</em> log; they can’t be treated as four independent validation logs, and they shouldn’t be confused with the A/B/C segments used for candidate construction and confirmation in the long chain.</p>
+<p>A few metrics need agreeing on up front, too:</p>
+<ul>
+<li>Height <strong>span</strong> is the maximum minus the minimum within one evaluation range; height <strong>net change</strong> is the last point minus the first. They’re not the same number.</li>
+<li>Pressure residual RMS describes how compatible the algorithm is with pressure observations; it isn’t an independent height error.</li>
+<li>Horizontal errors are only directly comparable at the same physical times on the same set of reference points.</li>
+<li>Matrix differences between algorithms near machine precision prove the implementations agree under the same approximation, not that the trajectory is close to how a person actually walked.</li>
+</ul>
+<p>We don’t have dense independent height ground truth. For same-floor walking, “body sway plus raising and lowering the phone shouldn’t produce meters, let alone tens of meters, of rise and fall” is an important physical check. The roughly 1.5 m empirical range we once proposed could only ever be used to <em>spot</em> problems. It was never a condition for clipping output, rejecting trajectories, picking the best solution or back-solving noise weights, and it certainly doesn’t apply to stair segments.</p>
+<h1 id="part-1-from-pressure-to-floors">Part 1: From pressure to floors</h1>
+<h2 id="the-first-task-turning-pressure-changes-into-floor-candidates">The first task: turning pressure changes into floor candidates</h2>
+<h3 id="pressure-gives-relative-change-and-the-reference-isnt-a-throwaway-constant">Pressure gives relative change, and the reference isn’t a throwaway constant</h3>
+<p>Under a model where local temperature is roughly fixed, pressure converts to relative height as</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>h</mi><mi>i</mi></msub><mo>=</mo><mo>−</mo><mi>s</mi><mi>log</mi><mo>⁡</mo><mfrac><msub><mi>P</mi><mi>i</mi></msub><msub><mi>P</mi><mn>0</mn></msub></mfrac><mo separator="true">,</mo><mspace width="2em"></mspace><mi>s</mi><mo>=</mo><mfrac><mrow><msub><mi>R</mi><mrow><mi mathvariant="normal">a</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">r</mi></mrow></msub><mi>T</mi></mrow><mi>g</mi></mfrac><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">h_i=-s\log\frac{P_i}{P_0},\qquad s=\frac{R_{\mathrm{air}}T}{g}.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.1963em;vertical-align:-0.836em;"></span><span class="mord">−</span><span class="mord mathnormal">s</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">s</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.2408em;vertical-align:-0.8804em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">g</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.0077em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3175em;"><span style="top:-2.55em;margin-left:-0.0077em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">air</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8804em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mord">.</span></span></span></span></span>
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">P_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is the current pressure, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>P</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">P_0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> the reference pressure, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi></mrow><annotation encoding="application/x-tex">T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span></span></span></span> the assumed temperature and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi></mrow><annotation encoding="application/x-tex">s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">s</span></span></span></span> a conversion scale in meters. When pressure drops, converted height rises. Android’s altitude API likewise requires a reference pressure, and its docs distinguish absolute altitude from the relative height difference between two readings (<a href="https://developer.android.com/reference/android/hardware/SensorManager#getAltitude(float,%20float)">Android altitude API</a>).</p>
+<p>The development model we kept using takes <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mn>293.15</mn><mtext> </mtext><mi mathvariant="normal">K</mi></mrow><annotation encoding="application/x-tex">T=293.15\,\mathrm{K}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">293.15</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathrm">K</span></span></span></span>, giving <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>≈</mo><mn>8581.016</mn><mtext> </mtext><mi mathvariant="normal">m</mi></mrow><annotation encoding="application/x-tex">s\approx8581.016\,\mathrm{m}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4831em;"></span><span class="mord mathnormal">s</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">8581.016</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathrm">m</span></span></span></span>. Near 1000 hPa, a small 1 hPa change corresponds to about 8.58 m. That’s only the approximate sensitivity at that temperature and local pressure, not a fixed floor-height conversion table for every building.</p>
+<p>This also clears up two common misunderstandings. First, Pa and hPa cancel in the ratio if numerator and denominator use the same unit, so changing units alone won’t fix a height that goes the wrong way. Second, taking a ratio removes a common multiplicative scale, but it doesn’t automatically remove additive bias, time-varying weather pressure, indoor–outdoor pressure differences or slow sensor drift. A more realistic expression is</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>z</mi><mi>h</mi></msub><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo><mi>h</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>+</mo><mi>b</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>+</mo><mi>ϵ</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">z_h(t)=h(t)+b(t)+\epsilon(t).</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.044em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">h</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">t</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">h</span><span class="mopen">(</span><span class="mord mathnormal">t</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">b</span><span class="mopen">(</span><span class="mord mathnormal">t</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">ϵ</span><span class="mopen">(</span><span class="mord mathnormal">t</span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span>
+<p>Here <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">b(t)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">b</span><span class="mopen">(</span><span class="mord mathnormal">t</span><span class="mclose">)</span></span></span></span> holds the not-yet-explained baseline change. If the person stands still and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">b(t)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">b</span><span class="mopen">(</span><span class="mord mathnormal">t</span><span class="mclose">)</span></span></span></span> changes, pressure height changes anyway. If the person is climbing while ambient pressure moves the other way, the real rise can be partly cancelled. <strong>So a pressure trend is evidence, not a floor label with the answer already attached.</strong></p>
+<h3 id="from-picking-a-floor-every-frame-to-tracking-a-whole-transition">From picking a floor every frame to tracking a whole transition</h3>
+<p>The early repository had several attempts side by side: barometric height, moving averages, gradients, WiFi floor voting. A mixed graph later alternated between solving discrete floors and continuous height, but in real runs it bounced between F3, F4 and F5 and had trouble converging. More iterations or looser numerical tolerances let some runs get further, without answering the actual question: why should <em>this</em> pressure change count as one floor change?</p>
+<p>The clearer direction that followed organizes a floor change as a process with a start, a direction and an end. On a flat floor, maintain a reference. When a trend appears, open a candidate. The candidate accumulates pressure and activity evidence over time and proposes a transition between legal adjacent floors. Once confirmed, the completed event is locked, so fluctuations on a landing can’t keep generating the same transition again.</p>
+<p>This design doesn’t require the person to stop completely to change floors. What it separates is “there’s enough evidence to change the floor number” from “the body has reached the stair exit.” The first can hold mid-climb; the second also needs a landing, the entry–exit relationship and map connectivity.</p>
+<p>Over time this division of responsibilities took shape. The diagram below summarizes how the pieces relate; the box names aren’t a complete enumeration from the source.</p>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="mermaid"><code><span class="line"><span style="color:#E6EDF3">flowchart TD</span></span>
+<span class="line"><span style="color:#E6EDF3">    P[Pressure samples and causal trend] --> E[Vertical activity event]</span></span>
+<span class="line"><span style="color:#E6EDF3">    I[IMU activity and STEP hints] --> E</span></span>
+<span class="line"><span style="color:#E6EDF3">    E --> C[Legal adjacent-floor candidate]</span></span>
+<span class="line"><span style="color:#E6EDF3">    C --> D[Discrete path choice and floor commit]</span></span>
+<span class="line"><span style="color:#E6EDF3">    D --> R[Close event and manage reference baseline]</span></span>
+<span class="line"><span style="color:#E6EDF3">    D --> X[Keep checking real landing or exit]</span></span>
+<span class="line"><span style="color:#E6EDF3">    X --> M[Map connectors and horizontal region correction]</span></span>
+<span class="line"><span style="color:#E6EDF3">    P --> H[Continuous height observation model]</span></span>
+<span class="line"><span style="color:#E6EDF3">    H --> N[Shared navigation posterior for position, velocity, attitude]</span></span></code></pre>
+<p>Activity recognition offers a motion explanation here, but it doesn’t own the final answer. Missing STEP events don’t prove someone is standing still, and elevators don’t need step events at all. Some <code>WALKING</code> labels in Floor just mean “not recognized as vertical activity” and can’t be treated as strict walking confirmation. And the same IMU being read by several modules doesn’t turn it into several independent pieces of evidence.</p>
+<p><strong>What this stage achieved was making floor changes correspond to a traceable physical process. It hadn’t yet constrained continuous height.</strong></p>
+<h2 id="why-every-floor-correct-didnt-expose-the-height-problem">Why “every floor correct” didn’t expose the height problem</h2>
+<p>When re-checking history, you can’t just read “passed” in a report title; you have to look at the denominator and what was actually evaluated.</p>
+<p>Two older batches over all 72 logs really did each record all 848 reference points matching their floor. That includes 72 startup points, leaving 776 after removing them. It’s a valuable historical result, and finding height problems later doesn’t erase it. But reference points only occur at sparse times. That statistic neither checks continuous height frame by frame nor proves there were no wrong floor changes that switched back in between.</p>
+<p>Before those two results, a 40-log development report already had a process health rate of 40/40, yet only 29/40 logs had every floor completely correct. Reference points were 489/516, about 94.77%, with 3 extra transitions, 34 missed transitions and 1 reversed transition recorded. It shows clearly that “the software didn’t crash” and “the floor calls were right” are different metrics. Point-level errors and event categories can’t simply be added together either.</p>
+<p>A more direct counterexample comes from same-floor trajectories:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Historical case</th><th>Saved floor behavior</th><th align="right">Continuous height span</th><th>What we can conclude</th></tr></thead><tbody><tr><td>Flat-floor walk (T31)</td><td>F3 throughout</td><td align="right">6.541 m</td><td>The floor label didn’t express continuous height drift</td></tr><tr><td>Second flat-floor walk (T32)</td><td>F3 throughout</td><td align="right">20.207 m</td><td>A normal discrete label can’t replace a 3D state check</td></tr></tbody></table>
+<p>Each span is a statistic over its own saved range. It doesn’t mean the two routes have the same length, inputs or difficulty, and it isn’t a fair ranking of two new algorithms.</p>
+<p><img alt="Barometer figure: old floor output vs. continuous height span" loading="lazy" decoding="async" fetchpriority="auto" width="2160" height="1368" src="/_astro/floor-score-height-blindspot.Byd3__ls_1PeYuF.webp" ></p>
+<p><em>Figure 1: Each case keeps its own statistical range. The figure shows an evaluation gap; it doesn’t compare algorithms by the spans of different routes.</em></p>
+<p>The reason at the code level is specific. The floor module at the time already used pressure to detect vertical events, but the historical run configuration we checked explicitly turned off the continuous <code>barometer</code> factor and <code>height_floor</code> coupling, while turning on <code>floor_transition_episode</code>. PRES showing up in the input list only proves some module read pressure, not that pressure constrained the U of every graph node.</p>
+<p>The history also really does contain same-floor logs that gained an extra floor change and then rolled back and recovered. Later audits also found some reruns covered only part of the logs or lacked usable position output. Compress partial regressions, full datasets and structure-only passes into one sentence like “it never got anything wrong before,” and attribution is distorted from the very start.</p>
+<p>So we separated floor acceptance from height acceptance. Floors are checked on reference points, wrong transitions and delay. Height is checked on same-floor shape, real rises and falls, and state before and after updates. Navigation quality then checks horizontal position and velocity. The three tables can explain each other, but none can replace another.</p>
+<h3 id="half-floor-false-commits-on-long-routes">Half-floor false commits on long routes</h3>
+<p>In a later saved investigation of the official long logs, the activity path proposed transitions at about half a floor’s height, for responsiveness. A nominal floor height of 3.5 m, a progress ratio of 0.50 and a tolerance of 0.02 give a proposal scale of about 1.68 m. Some false commits happened at about 1.68–1.97 m, while early proposals during real climbs fell in a similar range.</p>
+<p>That’s not a classification problem a stricter height threshold is guaranteed to fix. Continuing up after reaching half a floor and turning back after reaching half a floor can provide similar evidence in the first half. Commit too early with no physical recheck and no way to retract, and one mistake can leave every later correct transition carrying a one-floor offset. The interface originally meant to reject <em>uncommitted</em> candidates can’t simply take on the job of undoing a committed floor, either.</p>
+<p>Waiting for a full floor’s height has its own costs, though. Historical research recorded missed detections on dense back-and-forth and short landing stops, and new events being masked while waiting for a recheck. A pressure level-shift fallback helps where activity recognition falls short, but purely replacing the activity path makes it insensitive to floors with short stops. What needs designing is the whole lifecycle (candidate, commit, recheck, retract, next event), not one threshold made responsible for both sensitivity and final correctness.</p>
+<p>This uses the saved long-log investigation; some of the per-frame originals are no longer local, so we can’t claim it was reproduced this time. Another historical batch named <code>full72</code> actually completed only 54 logs, with the other 18 failing. All 657 points with receipts are correct, but that can’t be reported as 72 logs passing. These boundaries are part of the development lesson.</p>
+<h1 id="part-2-pressure-as-a-continuous-height-measurement">Part 2: Pressure as a continuous height measurement</h1>
+<h2 id="the-first-serious-failure-horizontal-correction-tilted-the-3d-route">The first serious failure: horizontal correction tilted the 3D route</h2>
+<p>The problem really moved to the center during WiFi correction research on the flat-floor walk. Finite rotations had fixed the horizontal stretching caused by first-order large-angle approximations, and the 2D plot already looked much better, yet the 3D height still made no sense.</p>
+<p>One snapshot had a within-segment height span of about 9.76 m. Further fitting found the whole route carried a common tilt of about <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>21.24</mn><mo>∘</mo></msup></mrow><annotation encoding="application/x-tex">21.24^\circ</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6741em;"></span><span class="mord">21.2</span><span class="mord"><span class="mord">4</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6741em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∘</span></span></span></span></span></span></span></span></span></span></span>. That rigid tilt alone predicts a height span of about 9.84 m, with a shape RMS difference of only about 0.083 m. It’s mainly one tilted ramp, not high-frequency barometric noise.</p>
+<p>Why would 2D radio affect height? Because the navigation solve adjusts position, velocity and attitude together. Radio observes EN directly, while Motion residuals preserve relative motion. If the graph’s approximation doesn’t keep the correct world vertical fixed, tilting the whole 3D route can change its horizontal projection and thereby reduce radio residuals.</p>
+<p>“TLIO used gravity” doesn’t close the question. Information passing from the raw front end into the graph goes through state selection, linearization, covariance projection and history compression. You have to look at what the current objective actually still contains, rather than assume from module names that gravity fully constrains every degree of freedom.</p>
+<p>Another effect was a common upward shift of the whole segment’s height baseline. That snapshot’s first-node U moved about 15.41 m, a different mechanism from the 9.76 m within-segment rise and fall. In the boundary prior, position, velocity and attitude are correlated; when attitude changes a lot, position’s conditional mean changes too. In the original record, the common height shift matched this conditional response to about <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>5.4</mn><mo>×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>12</mn></mrow></msup></mrow><annotation encoding="application/x-tex">5.4\times10^{-12}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">5.4</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">12</span></span></span></span></span></span></span></span></span></span></span></span> m.</p>
+<p>That isn’t a “bad correlation” you can just delete. Deleting it changes the information the original prior expresses. What’s really needed is to recover enough history, check where finite rotation and the original linearized prior stay valid, and add a real vertical measurement. At large angles, a local Gaussian prior can’t uniquely determine the right nonlinear distribution far from the original linearization point.</p>
+<p>This also corrected an intuition: <strong>the gyroscope isn’t a reference that directly keeps height from drifting.</strong> It measures angular rate; height depends on attitude, gravity removal, accelerometer bias, velocity and integration. Android’s sensor definitions explicitly separate angular rate from acceleration including gravity (<a href="https://developer.android.com/develop/sensors-and-location/sensors/sensors_motion">Android motion sensors</a>). Even with a smooth angular-rate curve, persistent acceleration error can integrate into a large height error. As a pure order-of-magnitude example, a constant <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0.01</mn><mtext> </mtext><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">/</mi><msup><mi mathvariant="normal">s</mi><mn>2</mn></msup></mrow></mrow><annotation encoding="application/x-tex">0.01\,\mathrm{m/s^2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord">0.01</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathrm">m/</span><span class="mord"><span class="mord mathrm">s</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathrm mtight">2</span></span></span></span></span></span></span></span></span></span></span></span> residual acceleration over one minute accumulates about 18 m of position error; that isn’t this project’s measurement of any phone’s bias.</p>
+<h2 id="adding-pressure-as-a-continuous-height-measurement-for-the-first-time">Adding pressure as a continuous height measurement for the first time</h2>
+<h3 id="constrain-relative-height-dont-pin-the-output-to-a-floor">Constrain relative height, don’t pin the output to a floor</h3>
+<p>We kept the raw pressure, aggregated it over causal windows, and built a relative height residual:</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>r</mi><mi>i</mi></msub><mo>=</mo><mo stretchy="false">(</mo><msub><mi>u</mi><mi>i</mi></msub><mo>−</mo><msub><mi>u</mi><mn>0</mn></msub><mo stretchy="false">)</mo><mo>−</mo><mo stretchy="false">(</mo><msub><mi>h</mi><mi>i</mi></msub><mo>−</mo><msub><mi>h</mi><mn>0</mn></msub><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">r_i=(u_i-u_0)-(h_i-h_0).</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span>
+<p>It constrains the height change between two times. The unknown common altitude baseline cancels, while the starting physical U still comes from the original startup information. After solving, nothing is re-zeroed, and the whole floor’s trajectory isn’t squashed onto one fixed height.</p>
+<p>That distinction matters. Tell the optimizer directly that “every same-floor point must lie in one plane,” and you’ll get a lovely flat line, possibly by erasing hand-held changes, ramps and steps, or even pushing a person back down mid-climb before the discrete floor has been committed. A pressure factor should express the change the sensor supports and its uncertainty, not write the desired picture into the objective.</p>
+<h3 id="differences-that-share-one-reference-arent-independent">Differences that share one reference aren’t independent</h3>
+<p>Suppose each raw height noise <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\epsilon_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">ϵ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is independent with variance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>σ</mi><mi>i</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">\sigma_i^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0728em;vertical-align:-0.2587em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-2.4413em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2587em;"><span></span></span></span></span></span></span></span></span></span>. The difference noise is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>i</mi></msub><mo>−</mo><msub><mi>ϵ</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">\epsilon_i-\epsilon_0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">ϵ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">ϵ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>. Two different differences both contain the same <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">\epsilon_0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">ϵ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, so</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">Cov</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>ϵ</mi><mi>i</mi></msub><mo>−</mo><msub><mi>ϵ</mi><mn>0</mn></msub><mo separator="true">,</mo><msub><mi>ϵ</mi><mi>j</mi></msub><mo>−</mo><msub><mi>ϵ</mi><mn>0</mn></msub><mo stretchy="false">)</mo><mo>=</mo><mrow><mo fence="true">{</mo><mtable rowspacing="0.36em" columnalign="left left" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><msubsup><mi>σ</mi><mi>i</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>σ</mi><mn>0</mn><mn>2</mn></msubsup><mo separator="true">,</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>i</mi><mo>=</mo><mi>j</mi><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><msubsup><mi>σ</mi><mn>0</mn><mn>2</mn></msubsup><mo separator="true">,</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>i</mi><mo mathvariant="normal">≠</mo><mi>j</mi><mi mathvariant="normal">.</mi></mrow></mstyle></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">\operatorname{Cov}(\epsilon_i-\epsilon_0,\epsilon_j-\epsilon_0)
+=\begin{cases}
+\sigma_i^2+\sigma_0^2,&#x26;i=j,\\
+\sigma_0^2,&#x26;i\ne j.
+\end{cases}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm" style="margin-right:0.0139em;">Cov</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">ϵ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">ϵ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">ϵ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">ϵ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3em;vertical-align:-1.25em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size4">{</span></span><span class="mord"><span class="mtable"><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.69em;"><span style="top:-3.69em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-2.4413em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2587em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-2.4519em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2481em;"><span></span></span></span></span></span></span><span class="mpunct">,</span></span></span><span style="top:-2.25em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-2.4519em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2481em;"><span></span></span></span></span></span></span><span class="mpunct">,</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.19em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:1em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.69em;"><span style="top:-3.69em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord mathnormal" style="margin-right:0.0572em;">j</span><span class="mpunct">,</span></span></span><span style="top:-2.25em;"><span class="pstrut" style="height:3.008em;"></span><span class="mord"><span class="mord mathnormal">i</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel"><span class="mrel"><span class="mord vbox"><span class="thinbox"><span class="rlap"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="inner"><span class="mord"><span class="mrel"></span></span></span><span class="fix"></span></span></span></span></span><span class="mspace nobreak"></span><span class="mrel">=</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord mathnormal" style="margin-right:0.0572em;">j</span><span class="mord">.</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.19em;"><span></span></span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span>
+<p>Even with independent raw samples, the difference covariance has off-diagonal terms. If raw samples are themselves time-correlated, with original covariance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi></mrow><annotation encoding="application/x-tex">C</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span></span></span></span> and difference operator <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>D</mi></mrow><annotation encoding="application/x-tex">D</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">D</span></span></span></span>, use <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>D</mi><mi>C</mi><msup><mi>D</mi><mi mathvariant="sans-serif">T</mi></msup></mrow><annotation encoding="application/x-tex">DCD^\mathsf{T}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8491em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathsf mtight">T</span></span></span></span></span></span></span></span></span></span></span>.</p>
+<p>Ignoring these terms amounts to splitting the error of one reference pressure into many independent pieces of evidence. The more observations, the more falsely certain the system becomes. The “pressure memory” that came later exists precisely to keep that shared information, not to give the algorithm some mysterious extra state.</p>
+<p>The initial correlated noise came from the empirical autocovariance of the flat-floor walk’s early segment, fixed before solving. It isn’t an independent cross-device calibration and can’t inherit any “certified coverage” claim. But at least it states clearly where the noise came from, over what time range it was estimated, and which correlations must enter the computation.</p>
+<h3 id="from-one-pressure-point-every-four-seconds-to-one-per-second">From one pressure point every four seconds to one per second</h3>
+<p>The first full-history run with four-second pressure observations already brought all four snapshots’ full-history height spans down to about 1.37–1.58 m. Then we noticed a brief dip near 83 s, falling exactly between two pressure samples, which the raw pressure at that time didn’t support.</p>
+<p>So the next change shortened the coverage interval of real observations while checking that raw sample blocks didn’t repeat. The matching noise autocovariance was rebuilt by the same rule: 33 early-segment samples for the four-second protocol and 129 for the one-second protocol, with zero-lag variances of about 0.041738 and 0.032577 m² respectively. <strong>This isn’t a single-variable experiment that changes only the sampling interval with every other matrix byte-identical.</strong> It didn’t tune a multiplier toward a target height, and it didn’t force the result to land “just under 1.5 m.”</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Same flat-floor snapshot</th><th align="right">Four-second pressure, Gaussian radio</th><th align="right">One-second pressure, Gaussian radio</th><th>Main thing changed</th></tr></thead><tbody><tr><td>Snapshot A</td><td align="right">1.368 m</td><td align="right">1.359 m</td><td>Time coverage and matching empirical covariance</td></tr><tr><td>Snapshot B</td><td align="right">1.550 m</td><td align="right">1.410 m</td><td>Time coverage and matching empirical covariance</td></tr><tr><td>Snapshot C</td><td align="right">1.583 m</td><td align="right">1.450 m</td><td>Time coverage and matching empirical covariance</td></tr><tr><td>Snapshot D</td><td align="right">1.549 m</td><td align="right">1.411 m</td><td>Time coverage and matching empirical covariance</td></tr></tbody></table>
+<p>These are all post-solve full-history U spans and can’t be read as four independent height-accuracy measurements. The more important counterexample: a bad initialization of the same model can also produce a tiny height range while its horizontal error is about seventeen meters. <strong>Smooth height doesn’t guarantee a correct route.</strong> Multi-start solutions should be chosen by a fixed objective and convergence rule, not by picking the prettiest one by reference-point error or height range.</p>
+<h2 id="great-horizontal-results-still-dont-mean-the-pressure-problem-is-solved">Great horizontal results still don’t mean the pressure problem is solved</h2>
+<p>Next, a Student-t radio likelihood brought clear correction gains on several flat-floor segments. It’s worth being clear about how that relates to the barometer: Student-t changes the tail influence of radio position residuals, while the pressure model still expresses vertical change independently. It isn’t a master switch that automatically detects and fixes pressure anomalies.</p>
+<p>With one-second pressure kept, the four target segments’ horizontal results were:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Flat-floor segment</th><th align="right">Gaussian, scale Q</th><th align="right">Student-t, ν=4, scale Q</th></tr></thead><tbody><tr><td>A</td><td align="right">2.574 m</td><td align="right">0.672 m</td></tr><tr><td>B</td><td align="right">0.760 m</td><td align="right">0.765 m</td></tr><tr><td>C</td><td align="right">0.920 m</td><td align="right">1.181 m</td></tr><tr><td>D</td><td align="right">1.746 m</td><td align="right">1.607 m</td></tr></tbody></table>
+<p>A improves clearly and C clearly regresses. The Student-t Q here is a scale matrix; at ν=4 the actual covariance is 2Q, so we can’t pretend its second moment matches Gaussian Q. A further matched-covariance comparison shows A’s Gaussian 2Q is still about 2.168 m, while D’s Gaussian 2Q is about 1.623 m, already close to Student-t’s 1.607 m: the extra benefit from heavy tails isn’t uniform.</p>
+<p>These numbers are worth keeping, but they’re conditional offline solves of one log. A and D each have only four in-segment reference points, and B and C one each. They don’t show the whole continuous run is that accurate, let alone that the same Motion–pressure combination stays reasonable when there are real stair climbs. It was the stairs walk, later on, that overturned the inference “flat floors are already good, so stairs should naturally be fine.”</p>
+<h3 id="fix-coordinate-initialization-first-map-alignment-mustnt-change-world-vertical">Fix coordinate initialization first: map alignment mustn’t change world vertical</h3>
+<p>A later continuous-source check found a problem different from the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>21.24</mn><mo>∘</mo></msup></mrow><annotation encoding="application/x-tex">21.24^\circ</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6741em;"></span><span class="mord">21.2</span><span class="mord"><span class="mord">4</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6741em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∘</span></span></span></span></span></span></span></span></span></span></span> tilt above: the original map alignment itself tilted world vertical by about <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2.814</mn><mo>∘</mo></msup></mrow><annotation encoding="application/x-tex">2.814^\circ</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6741em;"></span><span class="mord">2.81</span><span class="mord"><span class="mord">4</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6741em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∘</span></span></span></span></span></span></span></span></span></span></span>. The former was the correction solve choosing a ramp for lack of vertical information; the latter was coordinate initialization mixing in a tilt it shouldn’t have. They can’t be merged into one bug.</p>
+<p>After restricting that alignment to a finite yaw rotation about world vertical, the no-pressure U span in the same comparison dropped from about 5.611 m to 3.256 m. It didn’t remove every height problem, but it showed some of the anomaly came from coordinate conventions. A legitimate map-heading adjustment should keep the up axis and not take the opportunity to change the gravity direction. And the same-source information from the original AHRS, IMU and TLIO can’t, on that basis, be stacked again as an independent high-precision attitude observation.</p>
+<h3 id="a-brief-dip-that-exposed-fake-input-unrelated-to-pressure">A brief dip that exposed fake input unrelated to pressure</h3>
+<p>Before changing the noise model any further, a re-check of the flat-floor walk’s input timeline found a basic problem. The app received ACCE at intervals of about 0.572 s, while neighboring real sample times were only about 0.020 s apart; GYRO had a similar gap between sample clock and arrival clock. The batch for the 82 s request was empty, yet the old preprocessing held the previous real reading and filled 100 rows of apparently covered 200 Hz input between 81.500 and 81.995 s. The 81 real IMU rows that arrived afterwards landed in a consumption window already occupied by those held values.</p>
+<p>In that interval, propagation dropped vertical velocity by about 0.7727 m/s, and the learned update restored only about 0.00325 m/s. Tuning the barometer low-pass or pressure weight at that point wouldn’t have touched the actual cause.</p>
+<p>The fix required building blocks from real sample support while keeping true availability times. When late input needs waiting for, wait explicitly. Held values can’t be disguised as sample coverage, and offline analysis can’t use data before it would have arrived. In a controlled source comparison, the first 27 packets and 249 updates stayed identical, and the maximum wait for real-coverage blocks afterwards was one second. That local evidence doesn’t mean every later latency problem is solved, but it makes clear why “check that the data really arrived” has to come before tuning noise.</p>
+<h1 id="part-3-real-stairs">Part 3: Real stairs</h1>
+<h2 id="converged-yet-the-person-still-cant-climb">Converged, yet the person still can’t climb</h2>
+<p>The stairs walk contains real climbs and descents. We first fixed the two given exit regions, confirming that region constraints could provide horizontal correction in the shared model, and then transferred the flat-floor pressure model. The pressure scale, autocovariance and multiplier were <em>not</em> re-chosen for the stairs walk; it used 99 real one-second pressure windows.</p>
+<p>The result is easy to misread as progress. Pressure residual RMS dropped from about 2.09 m to 1.04 m, horizontal error fell slightly, and the solve met the original convergence criterion. But the vertical story over the whole run was still wrong.</p>
+<p>In both the old and new Floor audits of the same stairs walk, all six floor commits happened at exactly the same times: F2→F3 at 73.0 s, F3→F2 at 95.5 s, F2→F3 at 115.0 s, F3→F2 at 134.0 s, F2→F3 at 153.5 s, and F3→F2 at 172.5 s. This round of the continuous-height comparison covered only the earlier part of that motion. At least in this case, “a real climb got flattened” can’t be explained by the state machine suddenly producing different floor changes.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Quantity in the same stairs-walk segment</th><th align="right">Value</th></tr></thead><tbody><tr><td>Net height change of raw Motion</td><td align="right">−1.999 m</td></tr><tr><td>Net height change converted from pressure</td><td align="right">+2.309 m</td></tr><tr><td>Net height change after the joint solve</td><td align="right">about −0.199 m</td></tr><tr><td>Gap between joint end and pressure end</td><td align="right">about 2.508 m</td></tr></tbody></table>
+<p>This isn’t “not enough iterations.” Convergence means the solver has found a stable compromise under the current objective. If the objective’s motion model is too confident that there’s no rise, no number of iterations will conjure up the real stairs.</p>
+<h3 id="ruling-out-sign-unit-coordinate-and-timing-errors">Ruling out sign, unit, coordinate and timing errors</h3>
+<p>The raw pressure fell from 1024.105 to 1023.82945 mbar, so the converted height should go up. Checks confirmed the formula’s sign is right, pressure units are consistent, and the continuous reference isn’t secretly swapped at each floor. Map-heading initialization also rotates only about world vertical, with source U and transformed U differing on the order of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>5</mn><mo>×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>14</mn></mrow></msup></mrow><annotation encoding="application/x-tex">5\times10^{-14}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">14</span></span></span></span></span></span></span></span></span></span></span></span> m, so this failure can’t be blamed on coordinate alignment leaking horizontal into height.</p>
+<p>Narrowing to the 106.5–129.5 s stretch, where the common first reference cancels in the endpoint difference, the conflict remains:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Local rise/fall evidence</th><th align="right">Height increment</th><th align="right">Standard deviation in the model</th></tr></thead><tbody><tr><td>Motion</td><td align="right">+0.0206 m</td><td align="right">0.0841 m</td></tr><tr><td>Fixed pressure model</td><td align="right">+2.5122 m</td><td align="right">0.2487 m</td></tr></tbody></table>
+<p>This table shows what’s really going on. Motion isn’t just “slightly off”; it expresses its almost-no-rise explanation with a very small variance. Keeping full correlations avoids double counting, but it doesn’t make the covariance cover the network’s systematic mismatch. A mathematically correct implementation of a model can still be overconfident in a wrong motion explanation.</p>
+<h3 id="separating-propagation-from-network-updates-instead-of-naming-a-culprit-offhand">Separating propagation from network updates, instead of naming a culprit offhand</h3>
+<p>We read the actual state before and after each update and split the change into “propagation” and “learned update.” This is an accounting decomposition of one actual execution, not a counterfactual trajectory with the network turned off.</p>
+<p>In 106.5–129.5 s, the roughly +0.0206 m comes from −0.0944 m of propagation and +0.1150 m of updates. There’s no evidence here for “the IMU had already correctly risen 2.5 m, and then one network update erased it all.” In 141.5–158.5 s, by contrast, propagation gives about +1.7294 m and updates about −0.8168 m, so network updates really did suppress part of the rise. Different stretches can’t be forced into the same story.</p>
+<p>The network predicts one second of displacement every 0.05 s, with heavily overlapping output windows, so not all predictions can be summed. Fixing a choice of non-overlapping windows with full support, the 22 middle windows give a learned U total of about +0.201 m, and the 16 end windows about +0.079 m. Other phases were checked too, to avoid picking the most favorable slice. That supports “the network’s vertical response is weak,” but it isn’t enough to pin the blame uniquely on accelerometer bias, gravity projection or the training domain.</p>
+<p><img alt="Barometer figure: rise/fall conflicts in each stairs-walk segment and the horizontal results of later pressure feedback" loading="lazy" decoding="async" fetchpriority="auto" width="2196" height="1728" src="/_astro/barometer-t25-climb-feedback.DdNNQA_t_Z2fByOz.webp" ></p>
+<p><em>Figure 2: The top half compares the sources and pressure for the early five segments’ rises and falls; the bottom half summarizes horizontal results of the later feedback stage. The two halves belong to different stages and can’t be subtracted from each other to estimate the causal gain of any single change.</em></p>
+<h2 id="dropping-learned-u-exposed-a-more-basic-history-semantics-bug">Dropping learned U exposed a more basic history-semantics bug</h2>
+<p>The sensible next comparison was to keep 3D IMU propagation, let only the EN component of the learned displacement take part in updates, and have real pressure provide the vertical observation. EN-only here is a choice about the learned measurement; it doesn’t reduce navigation to 2D, and it doesn’t force U to be constant.</p>
+<p>That change had to be regenerated from the source. A posterior that has already fused learned U can’t become “not fused with U” by deleting one row and column of the covariance. The acceptance process needs checking too: if a 3D NIS still decides whether to accept observations, U is still indirectly influencing measurement selection. The first comparison froze the original acceptance decisions, so it isolates the effect of the update components, but it isn’t a fully redesigned 2D measurement system.</p>
+<p>With EN-only, one-second pressure nodes fit better, yet the half-second states between two pressure nodes still showed multi-meter spikes. Near 139 s, a midpoint was off by about −2.21 m, of which about −2.39 m already existed in the source history, with finite rotation contributing only about 0.00013 m. In another adjacent half second, the saved position dropped about 10.22 m, the learned update jumped about −10.23 m, and propagation contributed only about +0.0067 m.</p>
+<p>Connect those points directly as a physical trajectory and you’ve drawn a person dropping ten meters in half a second, with endpoint velocities that don’t support any such motion. Adding pressure weight or low-passing velocity at that point would both miss the real problem.</p>
+<h3 id="what-was-published-and-what-we-now-think-happened-arent-the-same-trajectory">”What was published” and “what we now think happened” aren’t the same trajectory</h3>
+<p>The old source kept the estimates <em>already published</em> at each time. As later data arrived, historical means were frozen, and only part of their error correlation with the current state was maintained. That’s useful for tracking the error of old publications, but it isn’t “the joint estimate of past physical states given all current data.”</p>
+<p>Here’s an intuitive example that doesn’t use real experiment numbers. While standing still, the old estimate thinks height is 0 m; a new observation arrives and the current estimate revises to 1 m. Connect the old 0 m to the new 1 m and the plot shows a rise. In reality it may just be a revision between two estimates, not the person moving. To draw a jointly cut-off physical history, new information has to be allowed to revise the past too.</p>
+<p>Our mistake then wasn’t forgetting to save all the covariances. It was that the statistical object being saved and the one being consumed didn’t match. History was maintained as “frozen publication error,” but Motion edges were built as if it were “the physical trajectory under one data cutoff.” However precisely the correlations are computed, they can’t do that semantic conversion for the consumer.</p>
+<h3 id="means-variances-and-cross-terms-have-to-change-together">Means, variances and cross terms have to change together</h3>
+<p>Let the cross-covariance between historical and current states be <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi></mrow><annotation encoding="application/x-tex">C</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span></span></span></span>, the current observation Jacobian <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi></mrow><annotation encoding="application/x-tex">H</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span></span></span></span>, the innovation covariance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi></mrow><annotation encoding="application/x-tex">S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">S</span></span></span></span> and the innovation <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ν</mi></mrow><annotation encoding="application/x-tex">\nu</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0637em;">ν</span></span></span></span>. When measurement noise is independent of the listed states, or the correlated pressure driver is already in the augmented state, history should get its own gain:</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>K</mi><mrow><mi mathvariant="normal">h</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">t</mi></mrow></msub><mo>=</mo><mi>C</mi><msup><mi>H</mi><mi mathvariant="sans-serif">T</mi></msup><msup><mi>S</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">K_{\mathrm{hist}}=CH^\mathsf{T}S^{-1}.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">hist</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8991em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8991em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathsf mtight">T</span></span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0576em;">S</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mord">.</span></span></span></span></span>
+<p>Then not only historical means but also historical variances and history–current cross terms must be updated. Attitude is injected by finite rotation, with the related covariance moved into the new tangent space. Changing only the quaternion, only the last position, or keeping only the cross block isn’t enough to get a consistent joint posterior.</p>
+<p>This also doesn’t authorize the system to rewrite old outputs already published externally. Publication records stay as they were; the algorithm internally maintains a separate “current estimate of the history,” used for later correction, prediction and numerical checks. The two need clear names and data cutoffs, and a retrospective result can’t be passed off as the real-time output of the time just to draw a smooth route.</p>
+<p>The jointly cut-off source still uses the original EKF linearization and conditional history updates; it doesn’t relinearize every old IMU, network and observation. Finite attitude injection doesn’t automatically give an exact fully nonlinear smoothed posterior either. What this fix does first is make the statistical objects consistent, then state clearly the local approximation it keeps.</p>
+<h2 id="after-the-fix-what-really-improved-and-what-it-cost">After the fix: what really improved, and what it cost</h2>
+<p>In the stairs walk’s EN-only jointly cut-off source, once later observations correctly propagate revisions into history, the midpoint deviation RMS of unanchored half-second nodes falls from about 0.940 m to 0.028 m, and the maximum gap between position increments and trapezoidal velocity integration falls from about 10.23 m to about 0.15 m. That’s a state-consistency improvement from fixing what the source means, with no height clipping.</p>
+<p>But with no pressure, the whole segment’s height still drifts down by about 46.05 m. The multi-meter sawtooth and the slow drift are two different problems: the former came mainly from drawing estimate revisions as physical motion, the latter from too little vertical observability or a mismatched motion model. Removing the sawtooth isn’t the same as controlling the drift.</p>
+<p>Adding the same pressure and the two given exit regions gives a set of results that have to be read together:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Metric</th><th align="right">Old consumption of frozen published history</th><th align="right">Jointly cut-off history</th></tr></thead><tbody><tr><td>Half-second midpoint deviation RMS</td><td align="right">about 0.936 m</td><td align="right">about 0.028 m</td></tr><tr><td>Pressure difference residual RMS</td><td align="right">about 0.213 m</td><td align="right">about 0.733 m</td></tr><tr><td>Mean horizontal error at four same points</td><td align="right">about 1.534 m</td><td align="right">about 1.888 m</td></tr></tbody></table>
+<p>The old scheme’s one-second pressure residual is tiny, but it produces multi-meter spikes between pressure points. The new scheme is more continuous, yet horizontal error regresses and the pressure residual grows. Reporting only “smaller residuals” would reward the old bug; reporting only “mathematically correct semantics” would hide the new cost.</p>
+<p>Next, an independent conditional computation with a full endpoint Gaussian was compared against the existing finite Motion solve. Maximum height differences for the XYZ and EN-only sources are about <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>6.0</mn><mo>×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>5</mn></mrow></msup></mrow><annotation encoding="application/x-tex">6.0\times10^{-5}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">6.0</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">5</span></span></span></span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>9.6</mn><mo>×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>4</mn></mrow></msup></mrow><annotation encoding="application/x-tex">9.6\times10^{-4}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">9.6</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">4</span></span></span></span></span></span></span></span></span></span></span></span> m, with pressure RMS still about 0.829 and 0.732 m. So the remaining mismatch here can’t mainly be blamed on the nonlinear solver code computing something wrong; it’s already in the measurement and source models as written.</p>
+<p>There’s also a numerical trap that’s easy to waste time on. The EN-only source has very large vertical uncertainty, so the matrix scales differ enormously. The raw-coordinate gradient after a direct inverse looks sizable, but an independent reference using Cholesky, noise whitening and a thin SVD gives a whitened gradient relative norm of about <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>4.9</mn><mo>×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>12</mn></mrow></msup></mrow><annotation encoding="application/x-tex">4.9\times10^{-12}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">4.9</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">12</span></span></span></span></span></span></span></span></span></span></span></span> and a state solution difference of about <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2.8</mn><mo>×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>9</mn></mrow></msup></mrow><annotation encoding="application/x-tex">2.8\times10^{-9}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2.8</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">9</span></span></span></span></span></span></span></span></span></span></span></span>. So before deciding a solver hasn’t converged, make sure the check itself is reliable at ill-conditioned scales. Don’t raise tolerances as soon as you see a large gradient, and don’t add diagonal jitter to make a factorization pass.</p>
+<h1 id="part-4-pressure-inside-the-shared-filter">Part 4: Pressure inside the shared filter</h1>
+<h2 id="feeding-pressure-into-the-shared-filter-so-it-shapes-the-future">Feeding pressure into the shared filter, so it shapes the future</h2>
+<p>Until now, pressure had mostly been added offline after the source was generated. That could fix saved segments, but the corrected height, velocity, attitude and related states never took part in later actual propagation. The next step was to make pressure a real update inside the native shared posterior:</p>
+<ol>
+<li>Raw pressure forms windows at exact physical times.</li>
+<li>A relative height measurement is built on the corresponding historical node.</li>
+<li>Related navigation states and the pressure memory are updated together.</li>
+<li>Later propagation, network inputs and candidate predictions use this revised state.</li>
+<li>Pressure already consumed is not added a second time as a “new in-graph factor.”</li>
+</ol>
+<p>The last item is especially easy to forget. After moving pressure into the front end, adding the same batch of pressure residuals back to a source already corrected by pressure counts one observation twice. It may make curves fit pressure better and covariances smaller, but those surface improvements add no independent information.</p>
+<h3 id="three-arms-with-the-network-output-frozen">Three arms with the network output frozen</h3>
+<p>We first froze the network output and the original acceptance decisions, then used the same pressure model to compare no pressure, end-conditioned pressure, and native sequential pressure feedback. That isolates <em>where</em> pressure gets fused, without mixing in changes from re-running the network.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Stairs-walk source / treatment</th><th align="right">Relative U at end</th><th align="right">Pressure difference residual RMS</th></tr></thead><tbody><tr><td>EN-only, no pressure</td><td align="right">−46.053693 m</td><td align="right">Not used as a qualifying pressure solution</td></tr><tr><td>Frozen network, end-conditioned pressure</td><td align="right">+2.455553 m</td><td align="right">0.73183 m</td></tr><tr><td>Frozen network, native sequential pressure feedback</td><td align="right">+2.457209 m</td><td align="right">0.73326 m</td></tr></tbody></table>
+<p>The two pressure branches have similar rise/fall curves, and the real climbs are preserved. But native feedback didn’t magically remove the remaining roughly 0.73 m of pressure mismatch. What it achieves first is that information is correctly inherited by future states; whether the model gets more accurate still has to be checked separately.</p>
+<h2 id="keeping-pressure-correlation-without-carrying-infinite-history">Keeping pressure correlation without carrying infinite history</h2>
+<p>If every new pressure window extends the full pressure covariance matrix, compute and memory grow with the length of the walk. What we want to keep isn’t every old matrix itself, but the shared information that still affects the future.</p>
+<p>This development model uses a finite moving-average noise expression:</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>ϵ</mi><mi>k</mi></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>0</mn></mrow><mn>128</mn></munderover><msub><mi>a</mi><mi>j</mi></msub><msub><mi>w</mi><mrow><mi>k</mi><mo>−</mo><mi>j</mi></mrow></msub><mo separator="true">,</mo><mspace width="2em"></mspace><msub><mi>w</mi><mi>j</mi></msub><mo>∼</mo><mi>N</mi><mo stretchy="false">(</mo><mn>0</mn><mo separator="true">,</mo><mn>1</mn><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\epsilon_k=\sum_{j=0}^{128}a_jw_{k-j},\qquad w_j\sim N(0,1).</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">ϵ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.2149em;vertical-align:-1.4138em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8011em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span><span class="mrel mtight">=</span><span class="mord mtight">0</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">128</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.4138em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mbin mtight">−</span><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∼</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="mopen">(</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span>
+<p>The 129 coefficients come from the biased empirical autocovariance of the original fixed pressure model’s early segment. It’s a finite-state implementation of the original model, not a freshly fitted AR model, and not a white-noise floor added to flatten height.</p>
+<p>For the original covariance with the same zero extension, conditioning can continue with one shared reference variable plus a finite number of noise drivers that still affect the future. The implementation keeps <strong>a shared reference plus 128 drivers resident, 129 dimensions of pressure memory in total</strong>. When a new driver arrives it’s added first, and directions that no longer affect the future are released after consumption, so momentarily there’s one extra dimension.</p>
+<p>That dimension isn’t the whole navigation system being 129-dimensional, nor 129 independent sensors. Navigation state, active targets, candidate branches, source responses and temporary solver workspace each take their own space. It only answers “how much state does this fixed pressure noise model need to keep?”</p>
+<p>Concretely, write the shared reference as <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi><mo>=</mo><msub><mi>U</mi><mn>0</mn></msub><mo>+</mo><msub><mi>ϵ</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">q=U_0+\epsilon_0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">U</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">ϵ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> and later relative observations as <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mi>i</mi></msub><mo>=</mo><msub><mi>U</mi><mi>i</mi></msub><mo>+</mo><msub><mi>ϵ</mi><mi>i</mi></msub><mo>−</mo><mi>q</mi></mrow><annotation encoding="application/x-tex">d_i=U_i+\epsilon_i-q</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">U</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">ϵ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span></span></span></span>. So q isn’t just a fixed pressure value; it also carries the starting U’s uncertainty and its relationship with navigation state. The first window establishes that relationship and provides no extra independent height measurement. The noise already enters through the driver states, so an independent R can’t be wrapped around it again to add the same measurement noise twice.</p>
+<p>The current development parameters should be listed one by one:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Parameter / choice</th><th align="right">Current fixed value</th><th>Role and limits</th></tr></thead><tbody><tr><td>Temperature assumption</td><td align="right">293.15 K</td><td>Used for pressure conversion; not measured per window</td></tr><tr><td>Log-pressure scale</td><td align="right">8581.016248 m</td><td>Same physical approximation as above</td></tr><tr><td>Aggregation</td><td align="right">One-second causal median</td><td>Suppresses local outliers; the observation is supported over a time span</td></tr><tr><td>Observation step</td><td align="right">One second</td><td>Not the same rhythm as the half-second graph nodes</td></tr><tr><td>Number of FIR coefficients</td><td align="right">129</td><td>Reproduces the original fixed empirical covariance</td></tr><tr><td>Resident pressure memory</td><td align="right">129 dimensions</td><td>q plus 128 still-correlated drivers</td></tr><tr><td>Overall noise multiplier</td><td align="right">1.0</td><td>Not re-tuned for the stairs walk in the transfer comparison</td></tr><tr><td>Cross-Trial status</td><td align="right">Development assumption</td><td>Doesn’t inherit any independent statistical coverage certification</td></tr></tbody></table>
+<p>The finite implementation also keeps the original model’s zero extension at long enough lags. That doesn’t mean real environmental drift necessarily disappears after the same time span. Covering the previous second with a median while binding it approximately to the window end is an observation-operator approximation; the roughly half-window support difference can’t be mechanically subtracted as a fixed sensor delay.</p>
+<p>What really matters is that when releasing old nodes, the cross-covariance between pressure memory and navigation state can’t be thrown away along with them. Otherwise new pressure may still appear to enter the graph, having already lost the relationship “which past states it shares reference error with.”</p>
+<p>The finite representation first has to match the reconstructed original covariance, then per-window updates and elimination are checked for consistency. In the stairs walk’s 99-window algebraic comparison, the first window establishes the reference and the following 98 provide information. After releasing old height nodes, maximum mean and covariance differences from a dense batch conditional computation are about <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1.31</mn><mo>×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>9</mn></mrow></msup></mrow><annotation encoding="application/x-tex">1.31\times10^{-9}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1.31</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">9</span></span></span></span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1.01</mn><mo>×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>9</mn></mrow></msup></mrow><annotation encoding="application/x-tex">1.01\times10^{-9}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1.01</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">9</span></span></span></span></span></span></span></span></span></span></span></span>. That certifies a bounded implementation of this fixed Gaussian model; whether it works together with real short corrections and later Motion updates still needs checking.</p>
+<h2 id="re-running-the-network-are-the-stairs-flattened-again">Re-running the network: are the stairs flattened again?</h2>
+<p>Freezing the network output is a clean mechanism comparison, but pressure feedback changes navigation state, and state may affect network preprocessing. To answer that, we kept the original acceptance decisions, re-ran inference on the actual network windows, and compared against the two frozen-network branches.</p>
+<p>All three use the same original causal coordinates, finite official start and two given exit regions, with pressure consumed once each. Results at the same four reference points:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Scheme</th><th align="right">Mean horizontal error</th><th align="right">P95</th><th align="right">Max error</th><th align="right">Whole-segment U span</th></tr></thead><tbody><tr><td>Frozen network, pressure fused afterwards</td><td align="right">1.888324 m</td><td align="right">2.904478 m</td><td align="right">2.954212 m</td><td align="right">3.542590 m</td></tr><tr><td>Frozen network, native pressure</td><td align="right">1.883914 m</td><td align="right">2.894369 m</td><td align="right">2.943373 m</td><td align="right">3.544895 m</td></tr><tr><td>Real network feedback, native pressure</td><td align="right">1.882997 m</td><td align="right">2.893124 m</td><td align="right">2.942327 m</td><td align="right">3.544918 m</td></tr></tbody></table>
+<p>The whole segment includes climbs and descents, so the roughly 3.54 m span can’t be read as same-floor body sway. The millimeter-level differences in the table aren’t gains worth choosing global parameters by. The more valuable result is that the three horizontal routes nearly coincide, the real rises and falls are kept, and re-running the network didn’t flatten the stairs again.</p>
+<p><img alt="Barometer figure: stairs-walk horizontal routes and real rises and falls at the same reference points" loading="lazy" decoding="async" fetchpriority="auto" width="1620" height="2304" src="/_astro/t25-height-horizontal.Dk-FiJ_N_Z2a79QL.webp" ></p>
+<p><em>Figure 3: The three routes use the same coordinates and reference set. POSI points are sparse horizontal references; connecting lines only aid reading and don’t imply continuous route ground truth.</em></p>
+<p>Per-point results have to be kept as well, so averages can’t hide regressions:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Reference time</th><th align="right">Pressure fused afterwards</th><th align="right">Frozen network, native pressure</th><th align="right">Real network, native pressure</th></tr></thead><tbody><tr><td>81.681 s</td><td align="right">0.606992 m</td><td align="right">0.616023 m</td><td align="right">0.615293 m</td></tr><tr><td>102.159 s</td><td align="right">1.369436 m</td><td align="right">1.359580 m</td><td align="right">1.360063 m</td></tr><tr><td>121.794 s</td><td align="right">2.622654 m</td><td align="right">2.616678 m</td><td align="right">2.614306 m</td></tr><tr><td>140.395 s</td><td align="right">2.954212 m</td><td align="right">2.943373 m</td><td align="right">2.942327 m</td></tr></tbody></table>
+<p>The first point still regresses by about eight millimeters. That’s no real engineering obstacle in itself, but it’s why records can’t keep only the averaged improvement. The bigger limitation: these are four development reference points that have already been studied repeatedly, exit associations reuse the given results, and the segment’s actual short EN factor count is zero. It shows that “given these conditions, pressure feedback can keep both the rises and falls and the horizontal shape.” It doesn’t show that the stair associator, fresh short corrections after an exit, the owner and the long/short chains all close the loop.</p>
+<h1 id="part-5-back-to-flat-floors-and-into-the-runtime">Part 5: Back to flat floors, and into the runtime</h1>
+<h2 id="back-on-a-flat-floor-the-full-history-overturned-an-early-optimism">Back on a flat floor, the full history overturned an early optimism</h2>
+<p>With real stairs restored, we had to go back to the flat-floor walk and check whether dropping learned U and switching to native pressure had brought new costs. Looking only at the first 129 pressure windows, one source’s height span was about 1.067 m, which looked more normal than before. Extending to the full A prefix changed the picture.</p>
+<p>The original six radio fixes, Student-t ν4 with the original Q, finite start and heading model were all kept. At the same nine reference points, mean horizontal error dropped from about 2.557586 to 2.531981 m, with mean horizontal speed nearly unchanged. But the full-prefix U span grew from 0.585540 m to 2.116826 m. More importantly, before this Radio was even added, the new source already had a span of 2.117317 m.</p>
+<p>So the new radio fit didn’t create this main rise and fall. Nor can it all be credited to “fusing pressure earlier,” because relative to the old A, the measurement choice also changed from learned XYZ to EN-only. Several changes happened at once, and the final two curves alone can’t isolate each one’s contribution.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Object in the same full prefix</th><th align="right">Height span relative to the first point</th><th>Note</th></tr></thead><tbody><tr><td>Raw pressure conversion</td><td align="right">1.629655 m</td><td>An observation curve, not independent height truth</td></tr><tr><td>Original XYZ source at the same cutoff</td><td align="right">1.447557 m</td><td>The original motion model’s estimate</td></tr><tr><td>Old A: XYZ source + in-graph pressure + Radio</td><td align="right">0.585540 m</td><td>Result of the original combined model</td></tr><tr><td>New EN + native pressure source, no Radio yet</td><td align="right">2.117317 m</td><td>The new rise and fall had already formed in the source</td></tr></tbody></table>
+<h3 id="separating-each-pressure-correction-from-later-history-revisions">Separating each pressure correction from later history revisions</h3>
+<p>Seeing a very low final history height at 256.5 s, it’s tempting to say “the pressure jumped in this window and pulled the person down.” But the originals let us split the same node into three states: before this pressure update, after it, and the final history once later data was in.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Node label</th><th align="right">U before this pressure update</th><th align="right">U after this pressure update</th><th align="right">History U at full cutoff</th><th align="right">Change from this update</th><th align="right">Later history change</th></tr></thead><tbody><tr><td>219.5 s</td><td align="right">0.022741</td><td align="right">−0.081565</td><td align="right">0.503676</td><td align="right">−0.104306</td><td align="right">+0.585242</td></tr><tr><td>240.5 s</td><td align="right">−0.627061</td><td align="right">−0.643747</td><td align="right">−0.029173</td><td align="right">−0.016687</td><td align="right">+0.614575</td></tr><tr><td>253.5 s</td><td align="right">−0.838583</td><td align="right">−0.944581</td><td align="right">−1.478951</td><td align="right">−0.105998</td><td align="right">−0.534370</td></tr><tr><td>256.5 s</td><td align="right">−0.794782</td><td align="right">−0.892189</td><td align="right">−1.610821</td><td align="right">−0.097407</td><td align="right">−0.718632</td></tr><tr><td>266.5 s</td><td align="right">0.015164</td><td align="right">−0.126598</td><td align="right">−1.293331</td><td align="right">−0.141762</td><td align="right">−1.166733</td></tr></tbody></table>
+<p><em>Heights and changes are in meters; the final history uses one data cutoff, without per-segment re-alignment. Node labels usually differ from exact physical times by 0.005 s, which can’t be ignored when recomputing.</em></p>
+<p><img alt="Barometer figure: flat-floor walk per-update pressure corrections separated from later history revisions" loading="lazy" decoding="async" fetchpriority="auto" width="2376" height="1080" src="/_astro/barometer-t31-history-revisions.DXNGe8jd_25ECTj.webp" ></p>
+<p><em>Figure 4: Each node’s change split into the immediate pressure correction and later history revisions.</em></p>
+<p>The 256.5 s node’s own pressure update moved it down only about 0.097 m; later it moved down another 0.719 m or so. The 266.5 s node later dropped by as much as about 1.167 m. Those later changes include later EN and pressure conditioning together and can’t be charged to any single pressure sample.</p>
+<p>From 219.5 to 256.5 s, pressure height fell about 0.897 m while the final source fell about 2.114 m. The raw pressure really does have a valley lasting tens of seconds, but the algorithm amplified and reshaped it. The existing records aren’t enough to back out every later EN and pressure contribution, so the correct conclusion is “the shared model still has an amplification that needs attributing,” not “a momentary sensor jump is the one culprit.”</p>
+<p>Two more checks are useful here. First, on the fixed saved curves, the full-support-window median observation differs from the endpoint approximation by at most about 0.099 m, with RMS about 0.028 m. That’s smaller than the later meter-scale history revisions, but the new observation operator hasn’t been independently rerun, so it can’t rule out small differences accumulating through feedback. Second, the new source’s raw pressure residual RMS is smaller than old A’s, while its whitened RMS is larger: smaller raw residuals don’t always mean more consistency under a correlated noise model.</p>
+<p>This result wasn’t hidden, and it wasn’t clipped by a 1.5 m threshold. It’s a reminder that <strong>restoring real stair climbs and keeping flat-floor height have to be explained by the same model; looking good in only one of the two scenarios isn’t enough to call it done.</strong></p>
+<h2 id="does-the-height-fix-cause-horizontal-jumps">Does the height fix cause horizontal jumps?</h2>
+<p>The pressure factor observes U directly, but in the joint filter EN, velocity, attitude and biases are correlated, so pressure updates can indirectly change the horizontal state. That isn’t inherently wrong; the question is whether the change is compatible with the shared model and the actual trajectory.</p>
+<p>So later checks stopped looking only at final horizontal error and read the change before and after every real pressure update. The flat-floor and stairs walks have 214 and 98 analyzable updates respectively:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Metric</th><th align="right">Flat-floor walk</th><th align="right">Stairs walk</th></tr></thead><tbody><tr><td>Max horizontal position change from one pressure update</td><td align="right">2.85 cm</td><td align="right">5.66 cm</td></tr><tr><td>Max horizontal velocity change from one pressure update</td><td align="right">0.0113 m/s</td><td align="right">0.0127 m/s</td></tr><tr><td>Max horizontal position change from an original learned update</td><td align="right">22.05 cm</td><td align="right">18.46 cm</td></tr><tr><td>Max final half-second horizontal segment length</td><td align="right">0.629 m</td><td align="right">0.795 m</td></tr><tr><td>Max cumulative revision of old history, horizontal</td><td align="right">1.222 m</td><td align="right">2.002 m</td></tr></tbody></table>
+<p>The last row isn’t one jump; it accumulates many later pieces of data. Writing it alongside single-update changes would again mistake retrospective revisions for real-time motion. The two finite segments didn’t reproduce the earlier anomalous speeds of several meters per second, which supports going on to finish wiring the shared posterior; it isn’t proof of horizontal stability in every scenario.</p>
+<p>We also don’t require every frame’s position difference to equal velocity times time exactly. Filter updates can correct position and velocity at once, and history gets revised by later data. What should be checked is how much comes from real motion via propagation, estimate changes via measurement updates, coordinate re-centering and retrospective revisions, and whether they form a sensible explanation under one data cutoff.</p>
+<h3 id="the-control-walk-wiring-check-pressure-information-must-survive-releasing-history">The control-walk wiring check: pressure information must survive releasing history</h3>
+<p>The finite pressure representation then went into a continuation check after a real short correction. The whole comparison uses 35 historical pressure windows plus 4 new continuation windows, 39 in total: the first establishes the reference and 38 provide informative updates. New pressure interleaves with 900 propagations, 90 learned updates and 90 clone releases; it doesn’t fuse all future pressure first and then pretend to advance in time.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Branch</th><th align="right">Max numerical difference under the same approximation</th><th align="right">Final dimension</th><th align="right">Transient peak</th><th align="right">Pressure memory dimension</th></tr></thead><tbody><tr><td>Gaussian, continued after short correction</td><td align="right"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>7.30</mn><mo>×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>13</mn></mrow></msup></mrow><annotation encoding="application/x-tex">7.30\times10^{-13}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">7.30</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">13</span></span></span></span></span></span></span></span></span></span></span></span></td><td align="right">363</td><td align="right">372</td><td align="right">129</td></tr><tr><td>Student-t, continued after short correction</td><td align="right"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>8.78</mn><mo>×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>13</mn></mrow></msup></mrow><annotation encoding="application/x-tex">8.78\times10^{-13}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">8.78</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">13</span></span></span></span></span></span></span></span></span></span></span></span></td><td align="right">363</td><td align="right">372</td><td align="right">129</td></tr></tbody></table>
+<p>Differences are relative to an independent dense-history reference. They show that, for this input, this local approximation and the same measurements, the bounded implementation doesn’t visibly lose information the reference keeps. That isn’t millimeter-level navigation accuracy, and it can’t replace resource-growth, numerical-stability and error-recovery tests on long logs.</p>
+<h2 id="back-in-the-runtime-why-an-old-rejection-blocked-the-right-posterior">Back in the runtime: why an old rejection blocked the right posterior</h2>
+<p>Even after the offline math was right, old logic in the runtime could still block things. A typical event happened near 82 s in the control walk. The raw TLIO rose about 1.068 m in half a second, the old Floor auxiliary graph’s Motion vertical envelope rejected the input, and the whole navigation run was terminated.</p>
+<p>The problem was that native had already taken over the real shared navigation and already had a pressure-constrained posterior. The native input for that 82 s batch had been consumed, but the old gate blocked the flow before that window’s output preparation and pressure conditioning; the latest publication was still stuck at 81.5 s. The old auxiliary graph was looking at raw Motion that was still drifting. It no longer carried the final estimate of actual continuous U, yet it still had the power to veto the whole system.</p>
+<p>The fix didn’t raise the original threshold or clip raw data. Only when preconditions hold (native has really taken over, pressure is working, the old floor–height coupling is off) is the old auxiliary edge’s vertical-envelope failure recorded as a diagnostic. Raw identity, timing and covariance checks, and the original gates for the old run mode, all stay in place.</p>
+<p>The principle behind it is to let each check act on the object it has the right to judge. The raw TLIO anomaly needs to be kept, studied and fixed, but “the raw source looks bad” can’t be equated with “the current posterior, corrected by real observations, is invalid.” Conversely, a bounded posterior doesn’t mean the raw front end’s kinematics have been rescued.</p>
+<h3 id="losing-the-original-pressure-window-at-startup-causes-a-late-large-correction">Losing the original pressure window at startup causes a late, large correction</h3>
+<p>The runtime also exposed another kind of bug. Between neighboring publications at 72.0→72.5 s, height jumped about 9.899299 m, exactly when the pressure update count went from zero to one. On a plot it looks like pressure suddenly pulled things back ten meters, but the root cause was startup material not being inherited correctly.</p>
+<p>The original pressure reference was at 52 s, and the scheduling object meant to receive it wasn’t created until 71 s; the old path, keeping only about twelve seconds of history, could no longer find the first window. One empty delivery also marked the receiver as started, so initialization wrongly used the current front. The system first published state without the original pressure properly connected, and then the late first pressure update produced the big jump.</p>
+<p>The fix keeps a bounded cache of the original events and hands over the first window unchanged when the scheduling object is created, restoring the exact target, both clocks, the original median and the raw identity together. Grid points in between with no exact historical target only advance the noise drivers; no observations are fabricated. This changed neither the pressure formula nor the weights; it fixed the execution order of the first reference and the first valid consumption.</p>
+<p>Two numbers with similar units need keeping apart: the old auxiliary graph’s 1.5 <strong>m/s</strong> vertical speed gate and the roughly 1.5 <strong>m</strong> after-the-fact physical check for same-floor walking are two different things. The latter was never used in place of the algorithm fixes above.</p>
+<h3 id="the-full-control-run-pressure-really-reaches-the-output">The full control run: pressure really reaches the output</h3>
+<p>After the fix, another control-walk run went all the way to 290 s, leaving 439 real PRODUCT outputs; it can’t be stitched together with the failed run above as one experiment. <strong>This run’s actual configuration used learned EN measurements with learned U turned off; the source branch in the table hasn’t received native pressure revisions and isn’t the default XYZ TLIO baseline.</strong> These are the seven paired times chosen in the original report:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Log time</th><th align="right">EN source U without pressure</th><th align="right">native U</th><th align="right">EN source vertical velocity</th><th align="right">native vertical velocity</th></tr></thead><tbody><tr><td>82 s</td><td align="right">15.581 m</td><td align="right">0.140 m</td><td align="right">0.963 m/s</td><td align="right">−0.101 m/s</td></tr><tr><td>104 s</td><td align="right">70.924 m</td><td align="right">−1.117 m</td><td align="right">2.602 m/s</td><td align="right">−0.132 m/s</td></tr><tr><td>144 s</td><td align="right">280.819 m</td><td align="right">−0.729 m</td><td align="right">6.195 m/s</td><td align="right">0.036 m/s</td></tr><tr><td>144.5 s</td><td align="right">295.218 m</td><td align="right">−0.608 m</td><td align="right">6.582 m/s</td><td align="right">0.151 m/s</td></tr><tr><td>200 s</td><td align="right">951.662 m</td><td align="right">−1.002 m</td><td align="right">13.099 m/s</td><td align="right">0.086 m/s</td></tr><tr><td>250 s</td><td align="right">2020.193 m</td><td align="right">−0.740 m</td><td align="right">20.653 m/s</td><td align="right">0.149 m/s</td></tr><tr><td>290 s</td><td align="right">3010.030 m</td><td align="right">0.577 m</td><td align="right">24.795 m/s</td><td align="right">−0.135 m/s</td></tr></tbody></table>
+<p><img alt="Barometer figure: seven paired samples of the control walk&amp;#x27;s EN source without pressure and the actual native posterior" loading="lazy" decoding="async" fetchpriority="auto" width="1620" height="1584" src="/_astro/native-vs-tlio.BWIK0JEJ_ZKvJDk.webp" ></p>
+<p><em>Figure 5: The top and bottom panels use separate y-axes rather than a dual axis that makes curves look aligned. There are only seven sampled times, and connecting lines don’t represent detail in between. The EN source and the physical native state have different height baselines; fixed initialization keeps the up axis, but neither is height truth, and this can’t be used to judge how much the default XYZ TLIO drifts.</em></p>
+<p>Over all 439 points, native U ranges from −1.283876 to 0.866120 m, a span of about 2.150 m, with a maximum height change between neighbors of about 0.397275 m. It didn’t drift up hundreds or thousands of meters along with the raw source, and the roughly 9.899 m break at the old startup didn’t come back. That’s strong evidence that “the pressure-informed shared posterior effectively constrains the vertical state in an actual run.”</p>
+<p>But we have to list right after it what it <em>didn’t</em> achieve:</p>
+<ul>
+<li>This is a control run. The paired candidate failed at startup, so it can’t be used to claim the full joint run gets the same result.</li>
+<li>The 439-point height span is still about 2.15 m, which can’t be reported as meeting the roughly 1.5 m physical expectation for same-floor walking.</li>
+<li>None of the nine non-start horizontal references was on the wrong floor, but mean horizontal error is about 5.117 m, P75 about 7.113 m and the last point about 12.886 m. Bounded height isn’t the same as horizontal accuracy being good enough.</li>
+<li>These control runs have zero counts of short corrections, long corrections, Map and stair-region corrections, so they can’t serve as evidence that every component is active.</li>
+<li>Median real PRODUCT window time is about 1316 ms with P95 about 1565 ms, neither meeting the 500 ms target; this isn’t a passing real-time acceptance either.</li>
+</ul>
+<p>At startup, 18 pressure grid points also had no exact retained target, and the system didn’t fabricate those observations; after that, pressure consumption kept advancing with memory dimension staying at 129. Causal gaps, complete output, accuracy and runtime are each recorded separately here, so a “natural EOF” doesn’t cover up every problem not yet solved.</p>
+<h1 id="part-6-putting-it-together">Part 6: Putting it together</h1>
+<h2 id="how-floor-changes-continuous-height-and-stair-re-anchoring-fit-together">How floor changes, continuous height and stair re-anchoring fit together</h2>
+<p>By this point, three responsibilities had finally become clear.</p>
+<p><strong>The first is Floor.</strong> It explains whether a legal floor transition happened and manages events, direction, landings and floor numbers. It’s responsible for half floors, turning back, continuous climbing and wrong activity labels.</p>
+<p><strong>The second is the continuous pressure posterior.</strong> It constrains the real relative change in U, keeps the shared reference and time correlation, and lets pressure corrections keep influencing later position, velocity, attitude and biases. It doesn’t reset every height to a floor plane just because Floor committed an integer.</p>
+<p><strong>The third is stair-exit position correction.</strong> It uses the confirmed entry–transition–exit relationship to add a region constraint on EN. A person inside the region shouldn’t be pulled toward its center. When several stairs can’t be told apart, candidates are kept; you can’t first pick the nearest stair by drifted position and then use that choice to prove the position is right.</p>
+<p>These three chains share some inputs, so sources need recording. Pressure having helped recognize an arrival doesn’t mean the same pressure can then be used as a new, independent “exit confirmation probability.” Radio already used for stair disambiguation can’t be reused as an independent short factor either.</p>
+<p>The continuous pressure reference and the Floor event reference need keeping apart too. One serves difference observations and the shared posterior; the other serves transition detection and re-arming events. A state machine resetting its working baseline for the next floor shouldn’t quietly swap every observation already in the continuous model over to a different reference.</p>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="mermaid"><code><span class="line"><span style="color:#E6EDF3">flowchart TD</span></span>
+<span class="line"><span style="color:#E6EDF3">    R[Raw pressure and exact time] --> B[Causal windows and fixed noise model]</span></span>
+<span class="line"><span style="color:#E6EDF3">    B --> P[Shared reference and finite pressure memory]</span></span>
+<span class="line"><span style="color:#E6EDF3">    M[Motion and existing shared posterior] --> J[Candidate shared update]</span></span>
+<span class="line"><span style="color:#E6EDF3">    P --> J</span></span>
+<span class="line"><span style="color:#E6EDF3">    J --> V[Position, velocity, attitude and related states]</span></span>
+<span class="line"><span style="color:#E6EDF3">    V --> H[Keep needed correlations, release old nodes]</span></span>
+<span class="line"><span style="color:#E6EDF3">    H --> J</span></span>
+<span class="line"><span style="color:#E6EDF3">    R --> F[Floor vertical events and floor commits]</span></span>
+<span class="line"><span style="color:#E6EDF3">    F --> E[Real exit and connector confirmation]</span></span>
+<span class="line"><span style="color:#E6EDF3">    E --> A[Exit EN region constraint]</span></span>
+<span class="line"><span style="color:#E6EDF3">    A --> J</span></span></code></pre>
+<p>The loop in this diagram that’s easiest to overlook is “keep needed correlations, then release old nodes.” An original node leaving the ten-second window doesn’t mean all the pressure information it carried can be deleted; but keeping information doesn’t mean storing every frame’s full matrix forever either. Finite memory and joint marginalization are exactly the mathematical interface between those two requirements.</p>
+<h2 id="lessons-worth-reusing">Lessons worth reusing</h2>
+<h3 id="separate-sensor-changes-estimate-updates-and-history-revisions-first">Separate sensor changes, estimate updates and history revisions first</h3>
+<p>When a curve jumps, first ask what kind of curve it is. A raw pressure jump, the current position revised by one measurement, an old node rewritten by later data and a coordinate re-expression can all change the numbers on a plot, and each needs a different fix. The flat-floor walk’s three-way attribution table shows the final valley can’t be blamed directly on one pressure update at that time; the stairs walk’s half-second spikes show that publications with different cutoffs can’t be stitched into one joint physical history.</p>
+<h3 id="numerical-convergence-is-a-necessary-check-not-a-substitute-for-physical-sense">Numerical convergence is a necessary check, not a substitute for physical sense</h3>
+<p>The stairs walk converged, yet compromised a +2.309 m pressure rise down to about −0.199 m. More iterations were pointless, because the error was already in the objective. Conversely, crude gradient checks on ill-conditioned matrices can falsely report non-convergence. Check against a stable reference first, then decide whether to change the solver or the model.</p>
+<h3 id="a-correct-covariance-and-a-credible-covariance-are-two-different-things">A correct covariance and a credible covariance are two different things</h3>
+<p>Keeping the shared reference, Motion source and history cross terms makes the information computation consistent. Motion giving only a 0.0841 m standard deviation for a local rise while disagreeing with pressure by about 2.49 m exposes model mismatch or uncovered error. “The matrix matches the reference to machine precision” can’t vouch for that kind of statistical credibility.</p>
+<h3 id="not-every-bad-result-is-barometer-noise">Not every bad result is barometer noise</h3>
+<p>A whole route tilted into a ramp, weak learned U response, sawtooth from frozen history, an old auxiliary graph wrongly vetoing the current posterior: none of these is solved by low-passing pressure. Filtering can reduce some high-frequency noise, and it can also add latency and change real rises and falls. Before adopting it, you need to know what you’re trying to remove.</p>
+<h3 id="flatter-on-the-same-floor-isnt-necessarily-better">Flatter on the same floor isn’t necessarily better</h3>
+<p>Pinning U to the floor plane eliminates every rise and fall, including real stairs. Worse local solutions can be just as flat. Look at flat floors, stairs, horizontal shape and velocity together, and don’t use output range as a model selector. Physical common sense raises the questions; real measurements and explainable models answer them.</p>
+<h3 id="keep-the-negative-results-so-you-know-what-not-to-redo">Keep the negative results, so you know what not to redo</h3>
+<p>After the joint-cutoff fix, horizontal error regressed for a while; native pressure feedback didn’t remove the remaining roughly 0.73 m mismatch; the millimeter-level differences from re-running the network aren’t worth exaggerating; the flat-floor walk’s full prefix overturned the optimistic reading of the short early segment. All of these belong next to the successes, or a later maintainer can easily retry explanations the evidence has already ruled out.</p>
+<h3 id="one-observation-carries-information-once-moving-modules-doesnt-add-evidence">One observation carries information once; moving modules doesn’t add evidence</h3>
+<p>After moving pressure from the offline graph into native, the original same-batch pressure factors have to be removed. Same-source information from AHRS, IMU and TLIO can’t be added again under another name either. If source records don’t enter the actual computation and live only in logs, they still can’t prevent overconfidence.</p>
+<h3 id="algorithm-boundedness-process-boundedness-and-whole-window-real-time-have-to-be-measured-separately">Algorithm boundedness, process boundedness and whole-window real time have to be measured separately</h3>
+<p>129 dimensions of pressure memory show that a specific noise model can be maintained finitely; the 363/372-dimension comparison shows that one shared computation can release old history. Neither covers the Python process, background candidates, databases, IPC and whole-window scheduling. A control run finishing completely didn’t make the 500 ms budget happen on its own.</p>
+<h2 id="where-this-stands-and-what-would-be-worth-verifying-next">Where this stands, and what would be worth verifying next</h2>
+<p>Based on the saved original reports, we can confirm the following. The barometer has gone from “only feeding trends to the floor state machine” to a measurement that enters the shared navigation posterior, constrains continuous height and keeps its influence on the future. The flattening of real stairs was recovered in the selected stairs-walk comparisons. With historical means, variances and correlations updated together, non-physical half-second sawtooth dropped sharply. And the numerical implementation of finite pressure memory with old-node release has an independent reference.</p>
+<p>It’s equally clear that there isn’t enough evidence yet to claim the pressure model is calibrated across logs. The flat-floor walk’s full prefix still shows same-floor rise and fall, the full control run still has a span of about 2.15 m, and these segments can’t stand in for the long-term joint behavior of every correction chain or accuracy on the official long logs.</p>
+<p>Valuable verification from here should be organized around hypotheses that can be told apart, rather than chasing one local curve over and over:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Next question</th><th>Conditions to keep identical</th><th>Results to record together</th></tr></thead><tbody><tr><td>Does the same-floor valley come from raw pressure or amplification by shared updates?</td><td>Same raw pressure, start, targets and data cutoff</td><td>State before and after every EN/pressure update for the current and preselected old nodes</td></tr><tr><td>When can the learned vertical model be trusted?</td><td>Fixed model rules with held-out Trials</td><td>Flat floors and stairs evaluated together, not just one of them</td></tr><tr><td>Does the pressure window approximation affect fast transitions?</td><td>Same raw samples and causal availability times</td><td>Window observation operator vs. endpoint approximation, floor-change and exit delay</td></tr><tr><td>Can the correlated noise transfer across devices?</td><td>Fixed training/evaluation split and parameter identity</td><td>Residual correlation, coverage and large errors, without treating in-fit residuals as validation</td></tr><tr><td>Does it stay under control long-term?</td><td>The frozen actual run configuration</td><td>Accuracy, memory, disk writes, time and failures on the full Zenodo long logs</td></tr></tbody></table>
+<p>That last item can’t be skipped. Short segments can show a mechanism works under specified conditions, but they can’t cover long slow drift, reference baseline changes, repeated floor changes, source release and rollback. Once the local algorithm and the whole-window runtime are finished, the full official long logs still have to be run on the frozen configuration.</p>
+<p>Looking back on this stretch of development, the deepest change wasn’t the barometer formula getting more complicated; it was getting stricter about what the word “height” means. It needs a defined physical coordinate, measurement sources, a shared reference, a data cutoff and uncertainty. It has to allow real climbs, and it has to refuse to draw estimate revisions as a person’s motion. Only when all of those agree can the pressure curve, the floor labels and the 3D trajectory tell one credible story of a walk.</p>
+<p><strong>A floor label says which level you’re on; height is only trustworthy once you know what reference, what data and what history it was computed from.</strong></p>
+<h2 id="data-and-evidence-index">Data and evidence index</h2>
+<p>The data here comes from re-checking and visualizing existing experiment originals; no navigation was re-run and no parameters were tuned for this post. The IDs below correspond to the <code>evidence-index.json</code> saved with the post, which records repository-relative paths, SHA-256 hashes, figure data and scope of use, for checking during project handover. Local disk paths aren’t turned into links readers can’t open.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>ID</th><th>Original topic</th><th>Use in this post</th></tr></thead><tbody><tr><td>E01</td><td>Old Floor full-batch audit, continuous height audit</td><td>72-log scores, same-floor height counterexamples, floor-change comparison</td></tr><tr><td>E02</td><td>T31 finite geometry, vertical evidence and pressure sampling comparison</td><td>Route tilt, shared reference, four-second to one-second pressure</td></tr><tr><td>E03</td><td>T31 Student-t and matched-covariance comparison</td><td>Horizontal gains and regressions, keeping radio robustness from being credited to pressure</td></tr><tr><td>E04</td><td>T25 fixed pressure transfer and update decomposition</td><td>Flattened real climbs, local variance conflict, propagation vs. update accounting</td></tr><tr><td>E05</td><td>Published-history / joint-cutoff semantics and pressure residual audit</td><td>Half-second sawtooth, horizontal cost after the fix, independent numerical reference</td></tr><tr><td>E06</td><td>T25 native pressure and real network feedback</td><td>Restored rises and falls, three-arm comparison at the same reference points</td></tr><tr><td>E07</td><td>T31 full-prefix height attribution</td><td>Raw pressure vs. per-update correction vs. later history revisions</td></tr><tr><td>E08</td><td>T21 pressure and history release after a real short correction</td><td>129-dimension pressure memory and dense-reference differences</td></tr><tr><td>E09</td><td>T31 / T25 horizontal update attribution</td><td>Single-update changes vs. cumulative history changes</td></tr><tr><td>E10</td><td>T21 full native control-run analysis</td><td>Actual output, source-branch drift under the EN configuration, full accuracy and runtime limits</td></tr></tbody></table>
+<p>Every figure has to be read together with its own input range. The four T31 snapshots, the full A prefix, the T25 three-arm comparison and the T21 control run are different experiments; this post strings their findings together in research order and doesn’t assemble them into a nonexistent “final unified score.”</p>
+<style>
+.prose img[alt^="Barometer figure"] { display: block; max-width: 100%; height: auto; margin: 1.8rem auto 0.8rem; border-radius: 8px; background: #fff; }
+.prose:has(img[alt^="Barometer figure"]) table th,
+.prose:has(img[alt^="Barometer figure"]) table td { min-width: 7em; overflow-wrap: normal; word-break: normal; }
+@media (min-width: 760px) {
+  .prose:has(img[alt^="Barometer figure"]) .mermaid > svg { max-width: 100% !important; }
+}
+</style></div> </article> </main> <footer> <div class="shell footer-inner"> <span>© 2026 MUR · Built for deep systems work.</span> </div> </footer> <script type="module" src="/_astro/BaseLayout.astro_astro_type_script_index_0_lang.B_HmufRK.js"></script> </body> </html>
