@@ -1,0 +1,241 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><meta name="generator" content="Astro v5.18.2"><meta name="description" content="This note records what MPI 4.1 promises for matching, ordering, the four send modes, completion, datatypes and progress. With it, a reader can tell which programs are correct and which only work by chance."><!-- Which build served this page: channel, commit and branch. Not shown on the page. --><meta name="build" content="live 7415161 (release)"><meta name="theme-color" content="#070b17"><meta property="og:type" content="website"><meta property="og:title" content="What the MPI Standard Guarantees for Point-to-Point Messages"><meta property="og:description" content="This note records what MPI 4.1 promises for matching, ordering, the four send modes, completion, datatypes and progress. With it, a reader can tell which programs are correct and which only work by chance."><meta property="og:url" content="https://murmurwkk.github.io/blog/mpi-send-semantics/"><link rel="canonical" href="https://murmurwkk.github.io/blog/mpi-send-semantics/"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="alternate" type="application/rss+xml" title="Murmurwkk" href="/rss.xml"><title>What the MPI Standard Guarantees for Point-to-Point Messages</title><script>
+      // A saved choice from the theme button wins; otherwise follow the system.
+      (() => {
+        let saved = null;
+        try { saved = localStorage.getItem('theme'); } catch {}
+        const system = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        const theme = saved === 'light' || saved === 'dark' ? saved : system;
+        document.documentElement.dataset.theme = theme;
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#f6f8fa' : '#070b17');
+      })();
+    </script><link rel="stylesheet" href="/_astro/about.CpZ-XyOu.css"></head> <body id="top" style="--site-background-image: url(/background.webp); --site-background-image-small: url(/background-small.webp)"> <div class="sakura-layer" aria-hidden="true"></div> <div class="ambient ambient-one"></div> <div class="ambient ambient-two"></div> <header class="site-header"> <div class="shell header-top"> <a class="brand" href="/" aria-label="Murmurwkk: home"> <span class="brand-mark"><img src="/_astro/brand-icon.BmGDVjnH.webp" alt="" width="36" height="36"></span> <span class="brand-copy"><strong>Murmurwkk</strong><small>AI Systems Lab</small></span> </a> <nav class="profile-tabs" aria-label="Main"> <a href="/"> <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0ZM3.5 7.25h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1 0-1.5ZM8 3a.75.75 0 0 1 .75.75v8.5a.75.75 0 0 1-1.5 0v-8.5A.75.75 0 0 1 8 3Z"></path></svg>   <span>Overview</span>  </a><a href="/blog/" aria-current="page">  <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M0 1.75A.75.75 0 0 1 .75 1h4.5C6.35 1 7.35 1.42 8 2.1A3.76 3.76 0 0 1 10.75 1h4.5a.75.75 0 0 1 .75.75v11.5a.75.75 0 0 1-.75.75h-4.5c-.8 0-1.54.31-2.1.87a.92.92 0 0 1-1.3 0A2.97 2.97 0 0 0 5.25 14H.75a.75.75 0 0 1-.75-.75V1.75Zm1.5.75v10h3.75c.73 0 1.41.17 2 .48V3.63A2.24 2.24 0 0 0 5.25 2.5H1.5Zm7.25 1.13v9.35a4.46 4.46 0 0 1 2-.48h3.75v-10h-3.75a2.24 2.24 0 0 0-2 1.13Z"></path></svg>  <span>Blog</span>  </a><a href="/about/">   <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 5.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM8 2a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm-5.5 11c0-1.73 2.44-2.75 5.5-2.75s5.5 1.02 5.5 2.75v.25a.75.75 0 0 1-1.5 0V13c0-.43-1.33-1.25-4-1.25S4 12.57 4 13v.25a.75.75 0 0 1-1.5 0V13Z"></path></svg> <span>About</span>  </a> </nav> <div class="header-actions"> <a class="header-github-link header-zhihu-link" href="https://www.zhihu.com/people/murmurmur-38" target="_blank" rel="noreferrer" data-en="Zhihu profile" aria-label="Zhihu profile (知乎)"> <strong class="zhihu-mark" aria-hidden="true">知</strong> <span lang="zh-CN">知乎</span> <span aria-hidden="true">↗</span> </a> <a class="header-github-link" href="https://github.com/dashboard" target="_blank" rel="noreferrer" data-en="GitHub"> <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.64 0 8.13c0 3.59 2.29 6.64 5.47 7.71.4.08.55-.17.55-.39 0-.19-.01-.83-.01-1.51-2.01.38-2.53-.5-2.69-.96-.09-.23-.48-.96-.82-1.15-.28-.15-.68-.53-.01-.54.63-.01 1.08.59 1.23.83.72 1.23 1.87.88 2.33.67.07-.53.28-.88.51-1.08-1.78-.21-3.64-.91-3.64-4.02 0-.89.31-1.62.82-2.19-.08-.2-.36-1.04.08-2.16 0 0 .67-.22 2.2.84A7.5 7.5 0 0 1 8 3.91a7.4 7.4 0 0 1 2 .27c1.53-1.06 2.2-.84 2.2-.84.44 1.12.16 1.96.08 2.16.51.57.82 1.3.82 2.19 0 3.12-1.87 3.81-3.65 4.02.29.25.54.74.54 1.5 0 1.08-.01 1.95-.01 2.22 0 .22.15.47.55.39A8.13 8.13 0 0 0 16 8.13C16 3.64 12.42 0 8 0Z"></path></svg> <span>GitHub</span> <span aria-hidden="true">↗</span> </a> <button class="theme-toggle" type="button" aria-label="Switch between light and dark theme" data-en="Light / dark theme"> <svg class="theme-icon theme-icon-sun" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11.25A3.25 3.25 0 1 0 8 4.75a3.25 3.25 0 0 0 0 6.5ZM8 .5a.75.75 0 0 1 .75.75v1a.75.75 0 0 1-1.5 0v-1A.75.75 0 0 1 8 .5Zm0 12.5a.75.75 0 0 1 .75.75v1a.75.75 0 0 1-1.5 0v-1A.75.75 0 0 1 8 13ZM.5 8a.75.75 0 0 1 .75-.75h1a.75.75 0 0 1 0 1.5h-1A.75.75 0 0 1 .5 8Zm12.5 0a.75.75 0 0 1 .75-.75h1a.75.75 0 0 1 0 1.5h-1A.75.75 0 0 1 13 8ZM2.7 2.7a.75.75 0 0 1 1.06 0l.7.7A.75.75 0 0 1 3.4 4.46l-.7-.7a.75.75 0 0 1 0-1.06Zm8.84 8.84a.75.75 0 0 1 1.06 0l.7.7a.75.75 0 0 1-1.06 1.06l-.7-.7a.75.75 0 0 1 0-1.06ZM13.3 2.7a.75.75 0 0 1 0 1.06l-.7.7a.75.75 0 1 1-1.06-1.06l.7-.7a.75.75 0 0 1 1.06 0ZM4.46 11.54a.75.75 0 0 1 0 1.06l-.7.7a.75.75 0 0 1-1.06-1.06l.7-.7a.75.75 0 0 1 1.06 0Z"></path></svg> <svg class="theme-icon theme-icon-moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.2 1.05a.75.75 0 0 1 .14.8 5.63 5.63 0 0 0 7.8 7.08.75.75 0 0 1 .98.93A7.2 7.2 0 1 1 5.4.9a.75.75 0 0 1 .8.15ZM4.78 2.98a5.7 5.7 0 1 0 8.14 7.77 7.14 7.14 0 0 1-8.14-7.77Z"></path></svg> </button> </div> </div> </header> <script type="module">const c=document.querySelector(".theme-toggle");c?.addEventListener("click",()=>{const e=(document.documentElement.dataset.theme??"dark")==="dark"?"light":"dark";document.documentElement.dataset.theme=e,document.querySelector('meta[name="theme-color"]')?.setAttribute("content",e==="light"?"#f6f8fa":"#070b17");try{localStorage.setItem("theme",e)}catch{}});const s=document.querySelector(".site-header");let o=window.scrollY,n=0;const r=()=>{const t=Math.max(window.scrollY,0),e=t-o;s?.classList.toggle("is-scrolled",t>12),t<=12||e<-4?s?.classList.remove("is-hidden"):e>4&&s?.classList.add("is-hidden"),o=t,n=0};window.addEventListener("scroll",()=>{n||(n=window.requestAnimationFrame(r))},{passive:!0});s?.addEventListener("focusin",()=>s.classList.remove("is-hidden"));</script>  <main> <div class="article-layout has-toc"> <article class="article"> <header class="article-header"> <p class="eyebrow doc-type-eyebrow" data-type="study-note">Study note</p> <h1>What the MPI Standard Guarantees for Point-to-Point Messages</h1> <p class="article-description">This note records what MPI 4.1 promises for matching, ordering, the four send modes, completion, datatypes and progress. With it, a reader can tell which programs are correct and which only work by chance.</p> <div class="tag-row">  <span class="tag">#MPI</span><span class="tag">#HPC</span><span class="tag">#message passing</span><span class="tag">#collectives</span><span class="tag">#distributed systems</span> </div> <details class="toc toc-inline"> <summary>Contents <span>12 sections</span></summary> <ol> <li><a href="#the-execution-model">The execution model</a></li><li><a href="#matching-which-receive-takes-which-message">Matching: which receive takes which message</a></li><li><a href="#ordering-messages-do-not-overtake-each-other">Ordering: messages do not overtake each other</a></li><li><a href="#the-four-send-modes">The four send modes</a></li><li><a href="#deadlock-and-the-two-standard-ways-out">Deadlock, and the two standard ways out</a></li><li><a href="#datatypes-and-the-type-signature-rule">Datatypes and the type-signature rule</a></li><li><a href="#tags-null-processes-and-communicators">Tags, null processes and communicators</a></li><li><a href="#progress-threads-and-errors">Progress, threads and errors</a></li><li><a href="#what-this-means-for-a-ring-allreduce">What this means for a ring allreduce</a></li><li><a href="#common-mistakes">Common mistakes</a></li><li><a href="#quick-reference">Quick reference</a></li><li><a href="#appendix-sources-and-conditions">Appendix: sources and conditions</a></li> </ol> </details> </header> <div class="prose"><p>MPI programs move data between processes with sends and receives, and many of their bugs come from assuming more than the standard promises. This note records what the MPI 4.1 standard guarantees for point-to-point communication and what it leaves to the implementation. It is organized around the questions that a programmer asks: how a receive finds its message, what “completed” means for a send, when two sends can deadlock, what a datatype changes, and whether a waiting process still makes progress. Where implementations differ, the note says so instead of picking one. The collective algorithms built from these operations are covered in <a href="/blog/allreduce-ring-tree/">The Cost of AllReduce Algorithms from Ring to Tree</a>.</p>
+<p>A few terms are fixed here. A <strong>communicator</strong> is a group of processes together with a private context. A <strong>rank</strong> is the index of a process within a communicator. The <strong>envelope</strong> of a message is what matching uses: the communicator, the source and the tag. Section numbers in this note refer to the MPI 4.1 standard.</p>
+<h2 id="the-execution-model">The execution model</h2>
+<p><strong>An MPI program is usually SPMD.</strong> Every process runs the same program, and its rank decides which branch it takes. MPI also allows different programs to run together, but the same-program form is the common case. <code>MPI_Init</code> starts the library, <code>MPI_Comm_rank</code> and <code>MPI_Comm_size</code> tell a process who it is and how many processes there are, and <code>MPI_Finalize</code> shuts the library down. Processes do not share memory, and one-sided communication is outside this note; apart from it, data moves only when a send is matched by a receive, or inside a collective operation.</p>
+<p>Two consequences follow immediately, and they cause most beginner bugs:</p>
+<ul>
+<li>Every process must call the same collective operations on the same communicator in the same order. A collective that only some ranks call usually hangs.</li>
+<li>A point-to-point exchange is not symmetric. One side calls a send, the other side calls a receive, and the two calls match by their envelopes, not by the order of the calls or by the names of the variables.</li>
+</ul>
+<p><strong>A communicator is more than a list of ranks.</strong> It carries a context, and a message sent in one communicator never matches a receive in another, even when the ranks and the tags are the same. Because of this isolation, a library can call <code>MPI_Comm_dup</code> to get a private channel, and its messages can never be taken by the application. Splitting a communicator with <code>MPI_Comm_split</code> creates new contexts as well as new groups.</p>
+<h2 id="matching-which-receive-takes-which-message">Matching: which receive takes which message</h2>
+<p>A receive names a communicator, a source and a tag. A send names the same three, plus a count and a datatype. A receive can take only a message whose envelope matches its own. The source or the tag may be a wildcard, <code>MPI_ANY_SOURCE</code> or <code>MPI_ANY_TAG</code>, and then the receive accepts any value in that field.</p>
+<p>Three details hide in this rule.</p>
+<p><strong>Matching does not look at buffers or variable names.</strong> The message is copied into the receive buffer, and when <code>MPI_Recv</code> returns, the data is in that buffer. The sender may reuse its own buffer as soon as its send completes, and this can happen before the receive. Nothing in the protocol depends on the two programs using the same variable names or the same loop structure. The counts and datatypes must still be compatible, as described below.</p>
+<p><strong>A receive can be posted before or after the matching send.</strong> If the receive is posted first, it waits until a matching message arrives. If a message arrives first, an implementation typically keeps it in a queue of unexpected messages until a matching receive is posted. This difference explains why “send, then receive” sometimes works and sometimes hangs. Implementations typically send small messages eagerly into a buffer on the receiving side and hold large ones back until the receive is posted, and the size limit between the two is an implementation detail with no value in the standard.</p>
+<p><strong>Wildcards cost determinism.</strong> With <code>MPI_ANY_SOURCE</code>, the standard does not define the order in which messages from different sources are matched, so a program that depends on this order depends on one implementation. <code>MPI_Probe</code> lets a receiver inspect an envelope before it chooses a buffer. Variable-length messages are usually received this way: probe, read the count, allocate a buffer, then receive (§3.8).</p>
+<h2 id="ordering-messages-do-not-overtake-each-other">Ordering: messages do not overtake each other</h2>
+<p><strong>The standard guarantees a limited ordering (§3.5).</strong> Suppose one process sends two messages to the same destination, and both messages match the same receive. Then the receive cannot take the second message while the first one is still pending. In other words, messages between one pair of processes do not overtake each other when both can match the same receive.</p>
+<p>The guarantee is deliberately narrow:</p>
+<ul>
+<li>Two sends with different tags to the same destination may be received in either order, because each receive chooses by its tag.</li>
+<li>Two sends on different communicators have no order relation at all.</li>
+<li>Sends from different processes have no order relation. If two ranks send to a third, the arrival order is whatever the network and the implementation produce.</li>
+</ul>
+<p>This rule makes protocols based on tags work: a receiver can expect a setup message and then a data message, with two tags. The same rule makes wildcard receives risky, because a wildcard receive that faces several senders has no defined order.</p>
+<h2 id="the-four-send-modes">The four send modes</h2>
+<p><strong><code>MPI_Send</code> is the standard-mode send, and its completion rule is the one that people get wrong (§3.4).</strong> It returns when the send buffer can be reused. It does not mean that the receiver has the data, that a receive has been posted, or that the message has left the machine. The implementation may copy the message into an internal buffer and return at once, or it may wait for a matching receive before it copies, and it may choose differently by message size or by state. The standard allows both, and a program cannot tell which one happened, except by timing.</p>
+<p>The other three modes make the choice explicit, and each has a condition:</p>
+<ul>
+<li><strong><code>MPI_Ssend</code> (synchronous)</strong> completes only after a matching receive has been posted and has started to receive the message. Use it when the protocol needs the receiver to have started, or to test that correctness does not rely on standard-mode buffering; it does not prohibit internal buffering.</li>
+<li><strong><code>MPI_Bsend</code> (buffered)</strong> copies the message into a buffer that the user attached with <code>MPI_Buffer_attach</code>, and then returns. Its completion no longer depends on the receiver, but the user must size the buffer.</li>
+<li><strong><code>MPI_Rsend</code> (ready)</strong> asserts that a matching receive is already posted. If no such receive exists, the program is erroneous; the mode exists to save a handshake when the sender knows that the receiver is waiting.</li>
+</ul>
+<p>The practical rule is short: <code>MPI_Send</code> may buffer, or it may not, so a program that works only with buffering may deadlock. Code that relies on the buffering of small messages is correct only for the implementation and the message sizes with which it was tested.</p>
+<h2 id="deadlock-and-the-two-standard-ways-out">Deadlock, and the two standard ways out</h2>
+<p><strong>The classic deadlock is a ring.</strong> Every rank calls <code>MPI_Send</code> to its right neighbor and then <code>MPI_Recv</code> from its left neighbor. If the implementation does not buffer, every send waits for a receive that no rank has posted, and the program hangs; the same shape appears in a pairwise exchange in which both ranks send first.</p>
+<p>Two kinds of calls avoid this deadlock without any assumption about buffering:</p>
+<ul>
+<li><strong><code>MPI_Sendrecv</code></strong> performs a send and a receive in one call, and the implementation guarantees that the pair does not deadlock against itself (§3.2.7). It is the right tool for a ring exchange or a halo exchange.</li>
+<li><strong>Nonblocking operations.</strong> <code>MPI_Isend</code> and <code>MPI_Irecv</code> start an operation and return a request handle at once, and <code>MPI_Wait</code> or <code>MPI_Test</code> later completes it (§3.7). Because neither call blocks, a program can start all of its sends and receives and then wait for all of them, and no rank can block another. Posting the receives first is still good practice, because a message then lands directly in its buffer instead of in the queue of unexpected messages.</li>
+</ul>
+<p><strong>Nonblocking completion is asymmetric.</strong> An <code>MPI_Isend</code> completes when the send buffer can be reused, and this again does not mean that the receiver has the data. An <code>MPI_Irecv</code> completes when the data is in the receive buffer. “The send completed” and “the receive completed” are statements about the local state of two different processes, and a program that confuses them has a race, not a performance problem.</p>
+<p><code>MPI_Test</code> returns a flag, and a false flag means “not complete yet”, not “failed”. Cancelling a send request with <code>MPI_Cancel</code> is deprecated in MPI 4.1 (§3.8.4). After <code>MPI_Cancel</code>, the request must still be completed with <code>MPI_Wait</code> or <code>MPI_Test</code>, and <code>MPI_Test_cancelled</code> then reports whether the cancellation succeeded or the operation completed normally.</p>
+<h2 id="datatypes-and-the-type-signature-rule">Datatypes and the type-signature rule</h2>
+<p>MPI datatypes let the sender and the receiver describe non-contiguous data without packing it by hand (§5). <code>MPI_Type_contiguous</code>, <code>MPI_Type_vector</code>, <code>MPI_Type_indexed</code> and <code>MPI_Type_create_struct</code> build derived types from a base type, a count and a layout. <code>MPI_Type_commit</code> makes a type usable, and <code>MPI_Type_free</code> releases the type handle, not the data.</p>
+<p><strong>Matching compares type signatures, not bytes (§3.3.1).</strong> The type signature of a message is the sequence of basic types that it contains. The types of the message must match the types of the receive element by element, but the receive may describe more elements than the message contains (§3.2.4): a send of 10 <code>MPI_INT</code> matches a receive of 20 <code>MPI_INT</code>, and <code>MPI_Get_count</code> then reports 10. The layouts in memory may differ completely. A sender can send one column of a matrix with a vector type, and the receiver can receive it into a contiguous buffer. What the standard does not allow is a mismatch of signatures: sending 10 <code>MPI_INT</code> to a receive of 10 <code>MPI_FLOAT</code> is erroneous, even though both take 40 bytes on most systems.</p>
+<p>Two practical consequences follow:</p>
+<ul>
+<li>The count in <code>MPI_Recv</code> is a maximum, not a hint. If a message is longer than the receive buffer, the receive raises an overflow error, <code>MPI_ERR_TRUNCATE</code>.</li>
+<li><code>MPI_BOTTOM</code> with absolute addresses lets one datatype describe data spread over several variables, for example the fields of a structure stored in different places. This is powerful, and it is easy to get wrong.</li>
+</ul>
+<p><strong>Large counts need the <code>_c</code> functions.</strong> Classic MPI counts are <code>int</code>, so a message with more than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mn>31</mn></msup><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">2^{31}-1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8974em;vertical-align:-0.0833em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">31</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> elements needs the large-count functions such as <code>MPI_Send_c</code>, and these functions take an <code>MPI_Count</code>. MPI 4.0 added them for exactly this reason. A message of 2 GiB of <code>MPI_BYTE</code> already crosses the limit, and a program that passes a <code>size_t</code> into an <code>int</code> count can silently wrap the value.</p>
+<h2 id="tags-null-processes-and-communicators">Tags, null processes and communicators</h2>
+<p>The tag is an integer with an upper bound that the implementation defines. The bound is available as the attribute <code>MPI_TAG_UB</code> and is at least 32,767 (§9.1). Using <code>MPI_PROC_NULL</code> as a source or destination turns the call into a no-op: a receive returns at once with an empty message, and a send does nothing (§3.10). This is the clean way to handle the edges of a ring or a stencil without branches.</p>
+<p>Collective operations are defined on communicators, and they are correct only if every member calls them in the same order. The context of a communicator keeps the internal collectives of a library apart from those of the application, and <code>MPI_Comm_dup</code> is the standard way to get this separation.</p>
+<h2 id="progress-threads-and-errors">Progress, threads and errors</h2>
+<p>Three properties are easy to assume, and none of them is guaranteed.</p>
+<p><strong>Progress (§2.9).</strong> Part of the work of an operation can happen outside the call that started it. The standard allows an implementation to do this work in a separate progress thread, on the network card, or inside later MPI calls of the same process. A program therefore cannot assume that an outstanding <code>MPI_Isend</code> advances while the process computes outside MPI. On implementations that progress only inside MPI calls, it advances only when the process calls MPI again, for example <code>MPI_Test</code>. Code that needs overlap should call <code>MPI_Test</code> at regular points.</p>
+<p><strong>Threads (§11.6).</strong> <code>MPI_Init_thread</code> negotiates one of four levels:</p>
+<ul>
+<li><code>MPI_THREAD_SINGLE</code>: only one thread exists.</li>
+<li><code>MPI_THREAD_FUNNELED</code>: only the thread that initialized MPI makes MPI calls.</li>
+<li><code>MPI_THREAD_SERIALIZED</code>: any thread may call MPI, but never two at the same time.</li>
+<li><code>MPI_THREAD_MULTIPLE</code>: any thread may call MPI at any time.</li>
+</ul>
+<p>Because the level that the library provides may be lower than the level requested, the program must check the level it receives.</p>
+<p><strong>Errors (§9.3).</strong> MPI calls return an error code, but by default an error on a communicator is fatal (<code>MPI_ERRORS_ARE_FATAL</code>), and the job aborts. The handler <code>MPI_ERRORS_RETURN</code> makes errors return to the caller, at the cost of checking every call. A mismatch in a point-to-point exchange usually means an erroneous program, not a recoverable condition, and the standard does not require the implementation to detect every such error.</p>
+<h2 id="what-this-means-for-a-ring-allreduce">What this means for a ring allreduce</h2>
+<p>The collective algorithms in the allreduce note are built from these primitives, and their correctness depends on the rules above. A ring allreduce runs a reduce-scatter and then an allgather, and each phase is a sequence of exchanges between neighbors. Using <code>MPI_Sendrecv</code> or correctly posted nonblocking calls avoids the cyclic blocking-send deadlock. Separate phase tags make matching easier to audit when phases can overlap; a sequential fixed-source ring can also reuse a tag with correctly ordered calls. The non-overtaking rule then orders matching messages. A separate communicator context isolates this protocol from unrelated traffic between the same ranks.</p>
+<p><strong>MPI and NCCL differ here in their contracts.</strong> MPI treats matching by envelope as a core mechanism and leaves buffering to the implementation. NCCL’s collectives require consistent participation and ordering rather than MPI-style tag matching. Its point-to-point calls, <code>ncclSend</code> and <code>ncclRecv</code>, take no tag, and the receiver must call <code>ncclRecv</code> with the same count and datatype as the sender. Both calls block the GPU stream, so concurrent sends and receives must be grouped between <code>ncclGroupStart</code> and <code>ncclGroupEnd</code>. The arithmetic of a ring is the same in both libraries, but the contract underneath is not.</p>
+<h2 id="common-mistakes">Common mistakes</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr></thead><tbody><tr><td>A ring exchange hangs</td><td>Every rank sends before it receives</td><td>Nonblocking calls, or <code>MPI_Sendrecv</code></td></tr><tr><td>Works for small messages, hangs for large ones</td><td>The program relied on eager buffering</td><td>Never rely on buffering; use nonblocking calls or <code>MPI_Sendrecv</code></td></tr><tr><td>A receive gets the wrong message</td><td>Same tag and source, or a wildcard receive</td><td>Distinct tags, or a private communicator</td></tr><tr><td>Truncation error</td><td>The receive count is smaller than the message</td><td>Probe first, or size the buffer for the largest message</td></tr><tr><td>Wrong numbers, no error</td><td>The type signatures do not match</td><td>Match the base types and counts</td></tr><tr><td>A collective hangs</td><td>Not every rank calls it, or ranks call collectives in a different order</td><td>Same calls, same communicator, same order</td></tr><tr><td><code>MPI_Isend</code> “finished”, but the data is wrong</td><td>Send completion was mistaken for receipt</td><td>Wait on the receive, not on the send</td></tr><tr><td>A busy loop never completes</td><td>No MPI call, so no progress</td><td>Call <code>MPI_Test</code> regularly</td></tr></tbody></table></div>
+<h2 id="quick-reference">Quick reference</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Call</th><th>Completes when</th><th>Buffer reusable after</th><th>Notes</th></tr></thead><tbody><tr><td><code>MPI_Send</code></td><td>The send buffer may be reused</td><td>Return</td><td>May buffer or wait for the receive</td></tr><tr><td><code>MPI_Ssend</code></td><td>A matching receive has started</td><td>Return</td><td>Forces the handshake</td></tr><tr><td><code>MPI_Bsend</code></td><td>The message is copied into the user buffer</td><td>Return</td><td>Buffer size set by <code>MPI_Buffer_attach</code></td></tr><tr><td><code>MPI_Rsend</code></td><td>The message is sent without a handshake</td><td>Return</td><td>The receive must already be posted</td></tr><tr><td><code>MPI_Recv</code></td><td>The data is in the buffer</td><td>Return</td><td>Blocking</td></tr><tr><td><code>MPI_Isend</code></td><td><code>MPI_Wait</code> or a true <code>MPI_Test</code></td><td>Completion</td><td>Returns a request handle</td></tr><tr><td><code>MPI_Irecv</code></td><td><code>MPI_Wait</code> or a true <code>MPI_Test</code></td><td>Completion</td><td>The data is valid after completion</td></tr><tr><td><code>MPI_Sendrecv</code></td><td>Both directions are done</td><td>Return</td><td>Does not deadlock against itself</td></tr></tbody></table></div>
+<h2 id="appendix-sources-and-conditions">Appendix: sources and conditions</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Work</th><th>Version</th><th>What this note takes</th><th>Conditions</th><th>Section</th><th>Kind</th></tr></thead><tbody><tr><td><a href="https://www.mpi-forum.org/docs/mpi-4.1/mpi41-report.pdf">MPI: A Message-Passing Interface Standard</a></td><td>Version 4.1</td><td>Matching, ordering, send modes, completion, cancel, datatypes, null processes, tag bound, progress, threads, error handlers</td><td>Normative text</td><td>§2.9, §3.2.7, §3.3.1, §3.4, §3.5, §3.7, §3.8, §3.10, §5, §9.1, §9.3, §11.6</td><td>Primary</td></tr><tr><td><a href="https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/api/p2p.html">NCCL point-to-point API</a></td><td>Current docs</td><td><code>ncclSend</code> and <code>ncclRecv</code> take no tag, need the same count and datatype, and block the GPU stream</td><td>NVIDIA GPUs</td><td><code>ncclSend</code>; <code>ncclRecv</code></td><td>Primary</td></tr><tr><td><a href="https://hpc-tutorials.llnl.gov/mpi/">LLNL MPI tutorial</a></td><td>Web tutorial</td><td>The execution model and the basic calls, as background</td><td>Teaching material</td><td>Whole tutorial</td><td>Secondary</td></tr><tr><td><a href="https://mpitutorial.com/tutorials/">MPI Tutorial</a></td><td>Web tutorial</td><td>Deadlock examples and nonblocking patterns, as background</td><td>Teaching material</td><td>Point-to-point tutorials</td><td>Secondary</td></tr></tbody></table></div>
+<p>Statements about buffering, progress and error detection follow the standard. Statements about what implementations typically do, such as eager sends of small messages and queues of unexpected messages, describe common practice and are marked as typical in the text.</p></div> </article> <aside class="toc toc-side" aria-label="Contents"> <p class="toc-title">Contents</p> <ol> <li><a href="#the-execution-model">The execution model</a></li><li><a href="#matching-which-receive-takes-which-message">Matching: which receive takes which message</a></li><li><a href="#ordering-messages-do-not-overtake-each-other">Ordering: messages do not overtake each other</a></li><li><a href="#the-four-send-modes">The four send modes</a></li><li><a href="#deadlock-and-the-two-standard-ways-out">Deadlock, and the two standard ways out</a></li><li><a href="#datatypes-and-the-type-signature-rule">Datatypes and the type-signature rule</a></li><li><a href="#tags-null-processes-and-communicators">Tags, null processes and communicators</a></li><li><a href="#progress-threads-and-errors">Progress, threads and errors</a></li><li><a href="#what-this-means-for-a-ring-allreduce">What this means for a ring allreduce</a></li><li><a href="#common-mistakes">Common mistakes</a></li><li><a href="#quick-reference">Quick reference</a></li><li><a href="#appendix-sources-and-conditions">Appendix: sources and conditions</a></li> </ol> </aside> </div> </main> <footer> <div class="shell footer-inner"> <span>© 2026 MUR · Built for deep systems work.</span> <a href="/rss.xml">RSS</a> </div> </footer> <button class="back-to-top" type="button" aria-label="Back to top" data-en="Back to top" hidden> <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.2 3.4 7.8a.75.75 0 0 0 1.06 1.06L7.25 6.07v6.68a.75.75 0 0 0 1.5 0V6.07l2.79 2.79A.75.75 0 1 0 12.6 7.8L8 3.2Z"></path></svg> </button> <div class="en-tip" role="tooltip" lang="en" hidden></div> <script type="module" src="/_astro/BaseLayout.astro_astro_type_script_index_0_lang.DomIvaLf.js"></script> </body> </html> <script type="module">const i=[...document.querySelectorAll(".toc-side a")],c=i.map(e=>document.getElementById(decodeURIComponent(e.hash.slice(1)))).filter(e=>!!e);function o(){const e=window.innerHeight*.3;let r=-1;c.forEach((t,n)=>{t.getBoundingClientRect().top<=e&&(r=n)}),i.forEach((t,n)=>{n===r?t.setAttribute("aria-current","location"):t.removeAttribute("aria-current")})}if(c.length){let e=0;window.addEventListener("scroll",()=>{e||(e=window.requestAnimationFrame(()=>{o(),e=0}))},{passive:!0}),o()}document.querySelectorAll(".toc-inline a").forEach(e=>{e.addEventListener("click",()=>e.closest("details")?.removeAttribute("open"))});</script>

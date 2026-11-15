@@ -1,0 +1,552 @@
+<!DOCTYPE html><html lang="en" data-theme="dark"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><meta name="generator" content="Astro v5.18.2"><meta name="description" content="This note follows interpretability from circuits to sparse-autoencoder features and back to computation graphs. With it, a reader can tell what an SAE measures and which methods show that a model uses a feature."><!-- Which build served this page: channel, commit and branch. Not shown on the page. --><meta name="build" content="live 7415161 (release)"><meta name="theme-color" content="#070b17"><meta property="og:type" content="website"><meta property="og:title" content="Interpretability from Circuits to Features and Back to Circuits"><meta property="og:description" content="This note follows interpretability from circuits to sparse-autoencoder features and back to computation graphs. With it, a reader can tell what an SAE measures and which methods show that a model uses a feature."><meta property="og:url" content="https://murmurwkk.github.io/blog/interpretability-features-circuits/"><link rel="canonical" href="https://murmurwkk.github.io/blog/interpretability-features-circuits/"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="alternate" type="application/rss+xml" title="Murmurwkk" href="/rss.xml"><title>Interpretability from Circuits to Features and Back to Circuits</title><script>
+      // A saved choice from the theme button wins; otherwise follow the system.
+      (() => {
+        let saved = null;
+        try { saved = localStorage.getItem('theme'); } catch {}
+        const system = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        const theme = saved === 'light' || saved === 'dark' ? saved : system;
+        document.documentElement.dataset.theme = theme;
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#f6f8fa' : '#070b17');
+      })();
+    </script><link rel="stylesheet" href="/_astro/about.CpZ-XyOu.css"></head> <body id="top" style="--site-background-image: url(/background.webp); --site-background-image-small: url(/background-small.webp)"> <div class="sakura-layer" aria-hidden="true"></div> <div class="ambient ambient-one"></div> <div class="ambient ambient-two"></div> <header class="site-header"> <div class="shell header-top"> <a class="brand" href="/" aria-label="Murmurwkk: home"> <span class="brand-mark"><img src="/_astro/brand-icon.BmGDVjnH.webp" alt="" width="36" height="36"></span> <span class="brand-copy"><strong>Murmurwkk</strong><small>AI Systems Lab</small></span> </a> <nav class="profile-tabs" aria-label="Main"> <a href="/"> <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0ZM3.5 7.25h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1 0-1.5ZM8 3a.75.75 0 0 1 .75.75v8.5a.75.75 0 0 1-1.5 0v-8.5A.75.75 0 0 1 8 3Z"></path></svg>   <span>Overview</span>  </a><a href="/blog/" aria-current="page">  <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M0 1.75A.75.75 0 0 1 .75 1h4.5C6.35 1 7.35 1.42 8 2.1A3.76 3.76 0 0 1 10.75 1h4.5a.75.75 0 0 1 .75.75v11.5a.75.75 0 0 1-.75.75h-4.5c-.8 0-1.54.31-2.1.87a.92.92 0 0 1-1.3 0A2.97 2.97 0 0 0 5.25 14H.75a.75.75 0 0 1-.75-.75V1.75Zm1.5.75v10h3.75c.73 0 1.41.17 2 .48V3.63A2.24 2.24 0 0 0 5.25 2.5H1.5Zm7.25 1.13v9.35a4.46 4.46 0 0 1 2-.48h3.75v-10h-3.75a2.24 2.24 0 0 0-2 1.13Z"></path></svg>  <span>Blog</span>  </a><a href="/about/">   <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 5.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM8 2a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm-5.5 11c0-1.73 2.44-2.75 5.5-2.75s5.5 1.02 5.5 2.75v.25a.75.75 0 0 1-1.5 0V13c0-.43-1.33-1.25-4-1.25S4 12.57 4 13v.25a.75.75 0 0 1-1.5 0V13Z"></path></svg> <span>About</span>  </a> </nav> <div class="header-actions"> <a class="header-github-link header-zhihu-link" href="https://www.zhihu.com/people/murmurmur-38" target="_blank" rel="noreferrer" data-en="Zhihu profile" aria-label="Zhihu profile (知乎)"> <strong class="zhihu-mark" aria-hidden="true">知</strong> <span lang="zh-CN">知乎</span> <span aria-hidden="true">↗</span> </a> <a class="header-github-link" href="https://github.com/dashboard" target="_blank" rel="noreferrer" data-en="GitHub"> <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.64 0 8.13c0 3.59 2.29 6.64 5.47 7.71.4.08.55-.17.55-.39 0-.19-.01-.83-.01-1.51-2.01.38-2.53-.5-2.69-.96-.09-.23-.48-.96-.82-1.15-.28-.15-.68-.53-.01-.54.63-.01 1.08.59 1.23.83.72 1.23 1.87.88 2.33.67.07-.53.28-.88.51-1.08-1.78-.21-3.64-.91-3.64-4.02 0-.89.31-1.62.82-2.19-.08-.2-.36-1.04.08-2.16 0 0 .67-.22 2.2.84A7.5 7.5 0 0 1 8 3.91a7.4 7.4 0 0 1 2 .27c1.53-1.06 2.2-.84 2.2-.84.44 1.12.16 1.96.08 2.16.51.57.82 1.3.82 2.19 0 3.12-1.87 3.81-3.65 4.02.29.25.54.74.54 1.5 0 1.08-.01 1.95-.01 2.22 0 .22.15.47.55.39A8.13 8.13 0 0 0 16 8.13C16 3.64 12.42 0 8 0Z"></path></svg> <span>GitHub</span> <span aria-hidden="true">↗</span> </a> <button class="theme-toggle" type="button" aria-label="Switch between light and dark theme" data-en="Light / dark theme"> <svg class="theme-icon theme-icon-sun" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11.25A3.25 3.25 0 1 0 8 4.75a3.25 3.25 0 0 0 0 6.5ZM8 .5a.75.75 0 0 1 .75.75v1a.75.75 0 0 1-1.5 0v-1A.75.75 0 0 1 8 .5Zm0 12.5a.75.75 0 0 1 .75.75v1a.75.75 0 0 1-1.5 0v-1A.75.75 0 0 1 8 13ZM.5 8a.75.75 0 0 1 .75-.75h1a.75.75 0 0 1 0 1.5h-1A.75.75 0 0 1 .5 8Zm12.5 0a.75.75 0 0 1 .75-.75h1a.75.75 0 0 1 0 1.5h-1A.75.75 0 0 1 13 8ZM2.7 2.7a.75.75 0 0 1 1.06 0l.7.7A.75.75 0 0 1 3.4 4.46l-.7-.7a.75.75 0 0 1 0-1.06Zm8.84 8.84a.75.75 0 0 1 1.06 0l.7.7a.75.75 0 0 1-1.06 1.06l-.7-.7a.75.75 0 0 1 0-1.06ZM13.3 2.7a.75.75 0 0 1 0 1.06l-.7.7a.75.75 0 1 1-1.06-1.06l.7-.7a.75.75 0 0 1 1.06 0ZM4.46 11.54a.75.75 0 0 1 0 1.06l-.7.7a.75.75 0 0 1-1.06-1.06l.7-.7a.75.75 0 0 1 1.06 0Z"></path></svg> <svg class="theme-icon theme-icon-moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.2 1.05a.75.75 0 0 1 .14.8 5.63 5.63 0 0 0 7.8 7.08.75.75 0 0 1 .98.93A7.2 7.2 0 1 1 5.4.9a.75.75 0 0 1 .8.15ZM4.78 2.98a5.7 5.7 0 1 0 8.14 7.77 7.14 7.14 0 0 1-8.14-7.77Z"></path></svg> </button> </div> </div> </header> <script type="module">const c=document.querySelector(".theme-toggle");c?.addEventListener("click",()=>{const e=(document.documentElement.dataset.theme??"dark")==="dark"?"light":"dark";document.documentElement.dataset.theme=e,document.querySelector('meta[name="theme-color"]')?.setAttribute("content",e==="light"?"#f6f8fa":"#070b17");try{localStorage.setItem("theme",e)}catch{}});const s=document.querySelector(".site-header");let o=window.scrollY,n=0;const r=()=>{const t=Math.max(window.scrollY,0),e=t-o;s?.classList.toggle("is-scrolled",t>12),t<=12||e<-4?s?.classList.remove("is-hidden"):e>4&&s?.classList.add("is-hidden"),o=t,n=0};window.addEventListener("scroll",()=>{n||(n=window.requestAnimationFrame(r))},{passive:!0});s?.addEventListener("focusin",()=>s.classList.remove("is-hidden"));</script>  <main> <div class="article-layout has-toc"> <article class="article"> <header class="article-header"> <p class="eyebrow doc-type-eyebrow" data-type="study-note">Study note</p> <h1>Interpretability from Circuits to Features and Back to Circuits</h1> <p class="article-description">This note follows interpretability from circuits to sparse-autoencoder features and back to computation graphs. With it, a reader can tell what an SAE measures and which methods show that a model uses a feature.</p> <div class="tag-row">  <span class="tag">#interpretability</span><span class="tag">#sparse autoencoders</span><span class="tag">#mechanistic interpretability</span><span class="tag">#circuit tracing</span><span class="tag">#TransformerLens</span><span class="tag">#Anthropic</span> </div> <details class="toc toc-inline"> <summary>Contents <span>7 sections</span></summary> <ol> <li><a href="#from-circuits-to-features-and-back">From circuits to features and back</a></li><li><a href="#what-an-sae-is-today">What an SAE is today</a></li><li><a href="#putting-features-back-into-the-computation">Putting features back into the computation</a></li><li><a href="#whats-still-open">What’s still open</a></li><li><a href="#quick-reference">Quick reference</a></li><li><a href="#conclusion">Conclusion</a></li><li><a href="#appendix-sources-and-conditions">Appendix: sources and conditions</a></li> </ol> </details> </header> <div class="prose"><p>Mechanistic interpretability tries to explain the answers of a language model through its internal computation. Its central unit has changed twice. The field started with circuits, switched to dictionaries of features when circuits stopped scaling, and is now going back to circuits, with those dictionaries as tools. Sparse autoencoders (SAEs) sit in the middle of this history: they made “feature” a measurable object, and their limits pushed the field toward attribution graphs and readouts in language. The thread of this note is the gap between a direction that can be labeled and a computation that can be shown.</p>
+<p>Interpretability research can now name millions of features inside a production language model. <em>Scaling Monosemanticity</em> extracted about <strong>34 million</strong> features from Claude 3 Sonnet, and clamping just one of them to a high value was enough to steer nearly every answer toward the topic of that feature. Yet a named feature, on its own, is not evidence that the model <em>uses</em> it to produce an answer. When Anthropic later traced how Claude 3.5 Haiku actually adds 36 + 59, the computation ran through two parallel paths, but when the model was asked how it got 95, it described the textbook carry method instead.</p>
+<p>This note has four parts. The first part tells the history as the question that each step answered and the question that it left open. The second part describes what an SAE is today, down to the tensors, the sparsity mechanisms and the training loop in SAELens. The third part covers the methods that put features back into a computation: attribution graphs, crosscoders, natural-language autoencoders, the workspace paper and the J++ lens. The last part lists the questions that the field has not answered yet. All results come from the papers listed at the end, and the code excerpts come from SAELens and TransformerLens.</p>
+<h2 id="from-circuits-to-features-and-back">From circuits to features and back</h2>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="mermaid"><code><span class="line"><span style="color:#E6EDF3">flowchart TD</span></span>
+<span class="line"><span style="color:#E6EDF3">    A["Circuits (2021–22): what does a set of weights compute?"] --> B["Superposition (2022): why single neurons can't be the unit"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    B --> C["Dictionaries (2023–24): which sparse directions exist?"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    C --> D["Attribution graphs (2025): which of them took part in this output?"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    D --> E["Language readouts (2025–26): can activations be explained in words?"]</span></span></code></pre>
+<p><em>Figure 1: Each step answered the previous step’s open question and left a new one.</em></p>
+<h3 id="circuits-the-residual-stream-as-a-shared-channel">Circuits: the residual stream as a shared channel</h3>
+<p><em>A Mathematical Framework for Transformer Circuits</em> starts from a fact about the architecture. Every transformer block adds its output to a residual stream, and every later block reads from the same sum. So the whole model can be rewritten as a sum of paths: the embedding directly to the output, the embedding through one attention head, the embedding through two heads in sequence, and so on.</p>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="mermaid"><code><span class="line"><span style="color:#E6EDF3">flowchart TD</span></span>
+<span class="line"><span style="color:#E6EDF3">    E["token embedding"] --> R1(("residual stream"))</span></span>
+<span class="line"><span style="color:#E6EDF3">    R1 --> H1["layer 1 heads"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    H1 -- "add output" --> R2(("residual stream"))</span></span>
+<span class="line"><span style="color:#E6EDF3">    R1 --> R2</span></span>
+<span class="line"><span style="color:#E6EDF3">    R2 --> H2["layer 2 heads"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    H2 -- "add output" --> R3(("residual stream"))</span></span>
+<span class="line"><span style="color:#E6EDF3">    R2 --> R3</span></span>
+<span class="line"><span style="color:#E6EDF3">    R3 --> U["next-token logits"]</span></span></code></pre>
+<p><em>Figure 2: Blocks read from and add to one shared stream, so the model’s output is a sum over paths through the blocks.</em></p>
+<p>Each attention head then splits into two parts. The QK circuit, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>W</mi><mi>Q</mi><mi mathvariant="normal">⊤</mi></msubsup><msub><mi>W</mi><mi>K</mi></msub></mrow><annotation encoding="application/x-tex">W_Q^\top W_K</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.2605em;vertical-align:-0.4114em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-2.4247em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">Q</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">⊤</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4114em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0715em;">K</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, decides which earlier positions a token attends to, and the OV circuit, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>O</mi></msub><msub><mi>W</mi><mi>V</mi></msub></mrow><annotation encoding="application/x-tex">W_O W_V</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">O</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.2222em;">V</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, decides what is copied from there into the stream. A “circuit” is a path through such matrices that implements a behavior. Two conventions from this paper still hold: the residual stream is a communication channel that every layer reads and writes, and the natural unit is a direction in this stream, not a neuron. The paper worked out attention-only models with zero, one and two layers exactly, but it did not say how to find circuits in a model with 70 layers.</p>
+<p><em>In-context Learning and Induction Heads</em> supplied the first convincing circuit. An induction head looks for the previous occurrence of the current token and copies the token that followed it. It needs a partner: a previous-token head writes “the token before me” into the stream, and the induction head uses this information to find the match. The paper supported this mechanism with six independent lines of evidence. Among them are a phase change in training, in which induction heads appear exactly when in-context learning improves, and ablations that remove the heads and the ability together. Mechanism, intervention and an account of how the circuit forms during training became the template for later work.</p>
+<h3 id="superposition-why-neurons-arent-the-right-unit">Superposition: why neurons aren’t the right unit</h3>
+<p><em>Toy Models of Superposition</em> explained why reading individual neurons fails. The toy model compresses <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> features into <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>&#x3C;</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">m&#x3C;n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathnormal">m</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&#x3C;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> hidden dimensions and then maps them back, with a ReLU at the output. When the features are dense, the model keeps only the most important ones, each in its own dimension, and drops the rest. Once the features are sparse enough, the model packs extra features into shared, non-orthogonal directions, because two features that are rarely active seldom collide. The packed features settle into regular shapes, such as antipodal pairs, triangles and pentagons, depending on how often each feature is active and how much it matters.</p>
+<p><img alt="Two panels: with dense features, two features take the two axes and the others are dropped; with sparse features, five features share two dimensions as the corners of a pentagon" loading="lazy" decoding="async" fetchpriority="auto" width="1440" height="735" src="/_astro/superposition.B13jVVOx_Z2aDx4K.webp" ></p>
+<p><em>Figure 3: Five features in two dimensions. Dense features get their own axes and the rest are dropped; sparse features share the space at the corners of a pentagon.</em></p>
+<p>Once superposition is real, “find the neuron for X” is no longer the right question. A better question is “find a sparse set of directions whose combination reconstructs the activation”. This is a dictionary-learning problem, and exactly the problem that an SAE solves.</p>
+<h3 id="dictionaries-making-feature-measurable">Dictionaries: making “feature” measurable</h3>
+<p><em>Towards Monosemanticity</em> ran the first serious SAE on a language model: a one-layer transformer with an MLP of 512 neurons, and dictionaries from 512 up to 131,072 latents. The main analysis used 4,096 latents, eight times overcomplete. The learned latents were often interpretable, and wider dictionaries split features into finer ones. The paper also set up evaluation habits that are still in use: activation examples, logit effects and ablations.</p>
+<p><em>Scaling Monosemanticity</em> applied the same instrument to Claude 3 Sonnet, with dictionaries of 1, 4 and 34 million features. The features were multilingual, some responded to images as well as to text, some were relevant to safety, and clamping them changed the behavior of the model in a coherent way.</p>
+<p>These results also set up the current debate. A feature that fires whenever a particular topic comes up is interpretable. Whether the model actually uses this feature when it answers a question about that topic is a separate claim, and steering experiments are the start of this evidence, not the end.</p>
+<h3 id="graphs-and-language-putting-features-back-into-the-computation">Graphs and language: putting features back into the computation</h3>
+<p>A dictionary shows which directions exist, but not which of them were used, and in what order, to produce a given token. <em>On the Biology of a Large Language Model</em> is the bridge back to circuits. It builds a replacement model for Claude 3.5 Haiku, traces individual outputs through this replacement, and finds computations that the text of the model itself does not mention. The section on <a href="#attribution-graphs">Attribution graphs</a> below describes the method.</p>
+<p>The latest work approaches the same gap from the output side: if features are hard to name, can the activations of the model be explained in language, either by the model itself or by a trained translator? This question is the second half of the frontier in this post.</p>
+<h3 id="the-papers-in-order">The papers, in order</h3>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="right">Year</th><th>Article</th><th>What it added</th></tr></thead><tbody><tr><td align="right">2021</td><td>A Mathematical Framework for Transformer Circuits</td><td>residual stream as a channel; QK and OV circuits</td></tr><tr><td align="right">2022</td><td>In-context Learning and Induction Heads</td><td>the first full circuit, tied to behavior and training</td></tr><tr><td align="right">2022</td><td>Toy Models of Superposition</td><td>why features outnumber dimensions</td></tr><tr><td align="right">2023</td><td>Towards Monosemanticity</td><td>SAEs extract nameable features from a small model</td></tr><tr><td align="right">2024</td><td>Scaling Monosemanticity</td><td>the same at production scale, up to 34M features</td></tr><tr><td align="right">2024</td><td>Sparse Crosscoders</td><td>features that span layers and models (preliminary)</td></tr><tr><td align="right">2025</td><td>On the Biology of a Large Language Model</td><td>attribution graphs over a replacement model</td></tr><tr><td align="right">2025</td><td>Emergent Introspective Awareness</td><td>models sometimes report injected internal states</td></tr><tr><td align="right">2026</td><td>Natural Language Autoencoders</td><td>activations explained in text, trained by reconstruction</td></tr><tr><td align="right">2026</td><td>Verbalizable Representations Form a Global Workspace</td><td>a limited, verbalizable subspace found with the Jacobian lens</td></tr><tr><td align="right">2026</td><td>Circuits Updates – October 2026</td><td>the J++ lens, a better linear readout</td></tr></tbody></table></div>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Era</th><th>Primary object</th><th>Main method</th><th>What it could claim</th><th>What it could not</th></tr></thead><tbody><tr><td>Circuits</td><td>attention head, residual stream</td><td>weight decomposition, ablation</td><td>a mechanism implements a behavior</td><td>which features exist in a full model</td></tr><tr><td>Dictionaries</td><td>sparse feature direction</td><td>SAE training, activation examples</td><td>a direction is interpretable and steerable</td><td>whether the model uses it in normal computation</td></tr><tr><td>Tracing</td><td>feature node in a graph</td><td>transcoders, attribution, language readouts</td><td>a feature took part in this output</td><td>that the graph is complete or the explanation faithful</td></tr></tbody></table></div>
+<h2 id="what-an-sae-is-today">What an SAE is today</h2>
+<h3 id="the-object">The object</h3>
+<p>An SAE is an autoencoder whose hidden layer is much wider than its input. For an activation <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><msub><mi>d</mi><mtext>in</mtext></msub></msup></mrow><annotation encoding="application/x-tex">x\in\mathbb{R}^{d_{\text{in}}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8491em;"></span><span class="mord"><span class="mord mathbb">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.334em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">in</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>:</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>z</mi><mo>=</mo><mi mathvariant="normal">act</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>W</mi><mi>e</mi></msub><mi>x</mi><mo>+</mo><msub><mi>b</mi><mi>e</mi></msub><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"></mspace><mover accent="true"><mi>x</mi><mo>^</mo></mover><mo>=</mo><msub><mi>W</mi><mi>d</mi></msub><mi>z</mi><mo>+</mo><msub><mi>b</mi><mi>d</mi></msub><mo separator="true">,</mo></mrow><annotation encoding="application/x-tex">z=\operatorname{act}(W_e x+b_e),\qquad \hat{x}=W_d z+b_d,</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">act</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">e</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">e</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6944em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">x</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2222em;"><span class="mord">^</span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span></span></span></span></span>
+<p>with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>e</mi></msub><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><msub><mi>d</mi><mtext>sae</mtext></msub><mo>×</mo><msub><mi>d</mi><mtext>in</mtext></msub></mrow></msup></mrow><annotation encoding="application/x-tex">W_e\in\mathbb{R}^{d_{\text{sae}}\times d_{\text{in}}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">e</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8491em;"></span><span class="mord"><span class="mord mathbb">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1645em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">sae</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mbin mtight">×</span><span class="mord mtight"><span class="mord mathnormal mtight">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.334em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">in</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>d</mi></msub><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><msub><mi>d</mi><mtext>in</mtext></msub><mo>×</mo><msub><mi>d</mi><mtext>sae</mtext></msub></mrow></msup></mrow><annotation encoding="application/x-tex">W_d\in\mathbb{R}^{d_{\text{in}}\times d_{\text{sae}}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8491em;"></span><span class="mord"><span class="mord mathbb">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.334em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">in</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mbin mtight">×</span><span class="mord mtight"><span class="mord mathnormal mtight">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1645em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">sae</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>d</mi><mtext>sae</mtext></msub><mo>≫</mo><msub><mi>d</mi><mtext>in</mtext></msub></mrow><annotation encoding="application/x-tex">d_{\text{sae}}\gg d_{\text{in}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">sae</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≫</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3175em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">in</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>. Training minimizes the reconstruction error plus a sparsity cost:</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="script">L</mi><mo>=</mo><mo stretchy="false">∥</mo><mi>x</mi><mo>−</mo><mover accent="true"><mi>x</mi><mo>^</mo></mover><msubsup><mo stretchy="false">∥</mo><mn>2</mn><mn>2</mn></msubsup><mo>+</mo><mi>λ</mi><mtext> </mtext><mi>S</mi><mo stretchy="false">(</mo><mi>z</mi><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\mathcal{L}=\lVert x-\hat{x}\rVert_2^2+\lambda\,S(z).</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal">L</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">∥</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6944em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">x</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2222em;"><span class="mord">^</span></span></span></span></span></span></span><span class="mclose"><span class="mclose">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-2.453em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.247em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">λ</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">S</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span>
+<p>The interesting part is <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi></mrow><annotation encoding="application/x-tex">S</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">S</span></span></span></span>. With the L1 norm, the model pays per unit of activation, so the active coefficients are shrunk toward zero. With a count of active latents, the model pays per latent, and the coefficients themselves are not penalized. With a learned threshold, the line between active and inactive becomes a parameter. I derived these objectives on a toy problem in <a href="/blog/sparse-autoencoders-superposition/">an earlier post</a>, and the short version is that L1 shrinks, TopK truncates and JumpReLU thresholds.</p>
+<p><img alt="Three panels: ReLU used with an L1 penalty passes every positive pre-activation; JumpReLU passes a pre-activation unchanged only above a learned threshold; TopK keeps the k largest of eight pre-activations and zeroes the rest" loading="lazy" decoding="async" fetchpriority="auto" width="1800" height="630" src="/_astro/sparsity-gates.D1NOEZje_1cMI4a.webp" ></p>
+<p><em>Figure 4: The three sparsity gates, applied to the encoder’s pre-activations.</em></p>
+<h3 id="three-sparsity-mechanisms-side-by-side">Three sparsity mechanisms, side by side</h3>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th></th><th>L1</th><th>TopK</th><th>JumpReLU</th></tr></thead><tbody><tr><td>activation</td><td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">ReLU</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>W</mi><mi>e</mi></msub><mi>x</mi><mo>+</mo><msub><mi>b</mi><mi>e</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\operatorname{ReLU}(W_e x+b_e)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">ReLU</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">e</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">e</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></td><td>ReLU of the top-<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span></span></span></span> pre-activations</td><td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>⋅</mo><mn mathvariant="bold">1</mn><mo stretchy="false">[</mo><mi>u</mi><mo>></mo><mi>θ</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">u\cdot\mathbf{1}[u>\theta]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal">u</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathbf">1</span><span class="mopen">[</span><span class="mord mathnormal">u</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mclose">]</span></span></span></span></td></tr><tr><td>sparsity control</td><td>penalty <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo stretchy="false">∥</mo><mi>z</mi><msub><mo stretchy="false">∥</mo><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\lambda\lVert z\rVert_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">λ</span><span class="mopen">∥</span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mclose"><span class="mclose">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></td><td>at most <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span></span></span></span> active per token</td><td>learned threshold <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span></span> plus an L0 penalty</td></tr><tr><td>gradient through the gate</td><td>ordinary ReLU</td><td>none to the latents not selected</td><td>straight-through, with a rectangle kernel for <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span></span></td></tr><tr><td>main failure mode</td><td>shrinkage, so reconstructions run small</td><td>each token gets up to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span></span></span></span> latents however many features are present</td><td>the threshold can collapse or oscillate; needs a bandwidth and a warmup</td></tr><tr><td>key paper</td><td>Anthropic, <em>Towards Monosemanticity</em></td><td>Gao et al.</td><td>Rajamanoharan et al.</td></tr></tbody></table></div>
+<p>Two details matter in code.</p>
+<p><strong>TopK limits the count; it does not fix the count.</strong> SAELens selects the <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span></span></span></span> largest pre-activations, applies ReLU to them and scatters them back (shortened from the source):</p>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#E6EDF3">topk_values, topk_indices </span><span style="color:#FF7B72">=</span><span style="color:#E6EDF3"> torch.topk(x, </span><span style="color:#FFA657">k</span><span style="color:#FF7B72">=</span><span style="color:#79C0FF">self</span><span style="color:#E6EDF3">.k, </span><span style="color:#FFA657">dim</span><span style="color:#FF7B72">=-</span><span style="color:#79C0FF">1</span><span style="color:#E6EDF3">, </span><span style="color:#FFA657">sorted</span><span style="color:#FF7B72">=</span><span style="color:#79C0FF">False</span><span style="color:#E6EDF3">)</span></span>
+<span class="line"><span style="color:#E6EDF3">values </span><span style="color:#FF7B72">=</span><span style="color:#E6EDF3"> topk_values.relu()</span></span>
+<span class="line"><span style="color:#E6EDF3">result </span><span style="color:#FF7B72">=</span><span style="color:#E6EDF3"> torch.zeros_like(x)</span></span>
+<span class="line"><span style="color:#E6EDF3">result.scatter_(</span><span style="color:#FF7B72">-</span><span style="color:#79C0FF">1</span><span style="color:#E6EDF3">, topk_indices, values)</span></span></code></pre>
+<p>A token with fewer than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span></span></span></span> positive pre-activations therefore ends up with fewer than <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span></span></span></span> active latents. BatchTopK relaxes the limit further: it chooses the top <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>×</mo></mrow><annotation encoding="application/x-tex">k\times</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.0833em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="mord">×</span></span></span></span>batch activations across a whole batch, so that easy tokens use fewer latents and hard tokens use more.</p>
+<p><strong>JumpReLU needs a gradient for its threshold.</strong> The forward pass is a step function, whose gradient is zero almost everywhere. The JumpReLU paper replaces this gradient with a rectangle kernel <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi></mrow><annotation encoding="application/x-tex">K</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">K</span></span></span></span> of width <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi></mrow><annotation encoding="application/x-tex">w</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0269em;">w</span></span></span></span> (the bandwidth) around the threshold. For the activation <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>=</mo><mi>u</mi><mo>⋅</mo><mn mathvariant="bold">1</mn><mo stretchy="false">[</mo><mi>u</mi><mo>></mo><mi>θ</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">z=u\cdot\mathbf{1}[u>\theta]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal">u</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathbf">1</span><span class="mopen">[</span><span class="mord mathnormal">u</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mclose">]</span></span></span></span> and for the L0 penalty <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn mathvariant="bold">1</mn><mo stretchy="false">[</mo><mi>u</mi><mo>></mo><mi>θ</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">\mathbf{1}[u>\theta]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathbf">1</span><span class="mopen">[</span><span class="mord mathnormal">u</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mclose">]</span></span></span></span>, the pseudo-derivatives with respect to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span></span> are</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mrow><mi mathvariant="normal">∂</mi><mi>z</mi></mrow><mrow><mi mathvariant="normal">∂</mi><mi>θ</mi></mrow></mfrac><mo>≈</mo><mo>−</mo><mfrac><mi>θ</mi><mi>w</mi></mfrac><mtext> </mtext><mi>K</mi><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mfrac><mrow><mi>u</mi><mo>−</mo><mi>θ</mi></mrow><mi>w</mi></mfrac><mo fence="true">)</mo></mrow><mo separator="true">,</mo><mspace width="2em"></mspace><mfrac><mrow><mi mathvariant="normal">∂</mi><mtext> </mtext><mn mathvariant="bold">1</mn><mo stretchy="false">[</mo><mi>u</mi><mo>></mo><mi>θ</mi><mo stretchy="false">]</mo></mrow><mrow><mi mathvariant="normal">∂</mi><mi>θ</mi></mrow></mfrac><mo>≈</mo><mo>−</mo><mfrac><mn>1</mn><mi>w</mi></mfrac><mtext> </mtext><mi>K</mi><mtext> ⁣</mtext><mrow><mo fence="true">(</mo><mfrac><mrow><mi>u</mi><mo>−</mo><mi>θ</mi></mrow><mi>w</mi></mfrac><mo fence="true">)</mo></mrow><mo separator="true">,</mo></mrow><annotation encoding="application/x-tex">\frac{\partial z}{\partial \theta}\approx-\frac{\theta}{w}\,K\!\left(\frac{u-\theta}{w}\right),\qquad
+\frac{\partial\,\mathbf{1}[u>\theta]}{\partial \theta}\approx-\frac{1}{w}\,K\!\left(\frac{u-\theta}{w}\right),</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.0574em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal" style="margin-right:0.044em;">z</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="mord">−</span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0269em;">w</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="mspace" style="margin-right:-0.1667em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0269em;">w</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathbf">1</span><span class="mopen">[</span><span class="mord mathnormal">u</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mclose">]</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="mord">−</span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0269em;">w</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">K</span><span class="mspace" style="margin-right:-0.1667em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0269em;">w</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mpunct">,</span></span></span></span></span>
+<p>while the gradient of the input passes straight through wherever the gate is open. SAELens implements both as custom <code>torch.autograd.Function</code> classes, <code>JumpReLU</code> and <code>Step</code>, with exactly these factors.</p>
+<h3 id="the-training-loop">The training loop</h3>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="mermaid"><code><span class="line"><span style="color:#E6EDF3">flowchart TD</span></span>
+<span class="line"><span style="color:#E6EDF3">    A["corpus"] --> B["model forward pass"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    B --> C["hooked activation x"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    C --> D["normalize and batch"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    D --> E["encoder: W_e x + b_e"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    E --> F["sparsity gate"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    F --> G["latents z"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    G --> H["decoder: W_d z + b_d"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    H --> I["loss: reconstruction + sparsity"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    I --> K["optimizer step and dead-latent fixes"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    K -.-> E</span></span></code></pre>
+<p><em>Figure 5: One SAE training run; the dotted arrow is the next batch. The gate is L1, TopK or JumpReLU; evaluation (CE loss recovered, L0, auto-interpretability) runs on the trained dictionary.</em></p>
+<p>A modern training run combines five loops. None of them is mathematically deep, but all of them change the result.</p>
+<ol>
+<li>
+<p><strong>Collect activations.</strong> A hook captures the residual stream, an MLP output or an attention output over a large corpus, and the activations are cached and shuffled. Normalization matters: if the norms of the activations drift between batches, the SAE can learn a dictionary that depends on the norm. SAELens offers <code>none</code>, <code>expected_average_only_in</code>, <code>constant_norm_rescale</code>, <code>layer_norm</code> and <code>covariance_whitening</code>.</p>
+</li>
+<li>
+<p><strong>Initialize.</strong> The decoder columns are scaled to a fixed norm (<code>decoder_init_norm</code>, 0.1 by default), the encoder starts as the transpose of the decoder, and the decoder bias starts at zero. Without a fixed decoder norm, the optimizer can lower the L1 penalty without changing the output, by shrinking the latents and growing the decoder columns.</p>
+</li>
+<li>
+<p><strong>Optimize.</strong> Adam with warmup and decay, with batches counted in tokens, because each token yields one activation vector. The GPT-4 SAE in the TopK paper saw 40 billion tokens.</p>
+</li>
+<li>
+<p><strong>Keep latents alive.</strong> A latent is “dead” if it has not fired for a window of steps. Dead latents waste capacity and distort the sparsity statistics. SAELens tracks them with a counter:</p>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#FF7B72">def</span><span style="color:#D2A8FF"> dead_neurons</span><span style="color:#E6EDF3">(self) -> torch.Tensor:</span></span>
+<span class="line"><span style="color:#FF7B72">    return</span><span style="color:#E6EDF3"> (</span><span style="color:#79C0FF">self</span><span style="color:#E6EDF3">.n_forward_passes_since_fired </span><span style="color:#FF7B72">></span><span style="color:#79C0FF"> self</span><span style="color:#E6EDF3">.cfg.dead_feature_window).bool()</span></span></code></pre>
+<p>Three fixes are in use. <strong>AuxK</strong>, from the TopK paper, adds a loss that lets the top dead latents reconstruct the residual error, so that these latents receive gradient. A <strong>pre-activation loss</strong>, from Anthropic’s JumpReLU recipe, pushes dead latents back toward their threshold. <strong>Resampling</strong> reinitializes dead latents toward inputs that are poorly reconstructed, and it is common in older L1 recipes.</p>
+</li>
+<li>
+<p><strong>Evaluate.</strong> Reconstruction alone is not enough: in the experiment of the earlier post, a larger budget of active latents reconstructed better while it recovered fewer of the true directions. The usual set of metrics contains:</p>
+<ul>
+<li>CE loss recovered: insert the reconstruction into the model and measure how much of the next-token loss remains;</li>
+<li>L0 and the fraction of dead latents;</li>
+<li>auto-interpretability: a model names a feature from its examples, and the name is scored;</li>
+<li>sparse probing and causal interventions.</li>
+</ul>
+<p>SAEBench combines these metrics across hundreds of public SAEs, because most papers had optimized one proxy at a time.</p>
+</li>
+</ol>
+<h3 id="the-hook">The hook</h3>
+<p>TransformerLens supplies the connections. A <code>HookPoint</code> is an identity module at a named site:</p>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#FF7B72">def</span><span style="color:#D2A8FF"> forward</span><span style="color:#E6EDF3">(self, x: Tensor) -> Tensor:</span></span>
+<span class="line"><span style="color:#FF7B72">    return</span><span style="color:#E6EDF3"> x</span></span></code></pre>
+<p>A hook function registered at this site can cache the activation for training, or it can return a replacement at inference, such as the reconstruction of an SAE. The method <code>HookedSAETransformer.add_sae(sae)</code> in SAELens connects an SAE to its hook name and can keep the reconstruction error as a separate term, so that the output of the model stays unchanged even though the SAE is imperfect.</p>
+<p>The hook name is part of the interpretation. <code>blocks.5.hook_resid_pre</code> and <code>blocks.5.hook_attn_out</code> have the same shape but are different objects: the first is the stream entering the block, and the second is what attention adds to it. A dictionary trained at one site does not transfer to another site just because the shapes match.</p>
+<h2 id="putting-features-back-into-the-computation">Putting features back into the computation</h2>
+<p>The methods below try to answer the questions that a dictionary cannot answer: which features take part in this computation, in what order, and whether the account of the model itself matches the computation.</p>
+<h3 id="attribution-graphs">Attribution graphs</h3>
+<p><em>On the Biology of a Large Language Model</em> traces outputs of Claude 3.5 Haiku through a replacement model with three parts:</p>
+<ol>
+<li><strong>A cross-layer transcoder replaces the MLPs.</strong> It has about 30 million features, and each feature reads from the residual stream at one layer and writes to the MLP outputs of that layer and later layers. A transcoder models the function of the MLP, from input to output, instead of only reconstructing an activation, and circuit work needs exactly this property.</li>
+<li><strong>Attention stays as it is.</strong> For a given prompt, the attention patterns and the normalization denominators of the original model are frozen. The replacement still applies a JumpReLU to each feature, so it is not a linear model. What becomes linear is the direct effect of one feature’s activation on the pre-activation of a later feature, through the residual stream and the frozen attention.</li>
+<li><strong>Error nodes</strong> hold what the replacement misses at each position, so the trace shows where it is incomplete.</li>
+</ol>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="mermaid"><code><span class="line"><span style="color:#E6EDF3">flowchart TD</span></span>
+<span class="line"><span style="color:#E6EDF3">    T["prompt tokens"] --> F1["transcoder features, early layers"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    F1 -- "frozen attention moves information between positions" --> F2["transcoder features, later layers"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    F2 --> O["output logit for the target token"]</span></span></code></pre>
+<p><em>Figure 6: An attribution graph. With attention and normalization frozen, the direct effects between active features can be traced backward exactly. Error nodes, not drawn, sit beside the features and hold what the replacement misses.</em></p>
+<p>Because these direct effects are linear once attention and normalization are frozen, the direct influence of every active feature on later features and on a target logit can be computed exactly for this prompt. The result is a graph from the input tokens through the features to the output. The case studies show structure that the text does not show:</p>
+<ul>
+<li><strong>Poems:</strong> the model chooses the rhyming word before it writes the line that ends with this word.</li>
+<li><strong>Hallucination:</strong> features for “cannot answer” are on by default, and features for known entities switch them off. A hallucination happens when a familiar name switches these features off although the model does not know the answer.</li>
+<li><strong>Addition:</strong> the model computes the rough size of the sum and its last digit along separate paths and combines them, but it describes the carry method when asked.</li>
+</ul>
+<p>The limits are equally concrete. The replacement is an approximation, and its error nodes cannot be interpreted. A graph explains one output, not the model. In addition, the method needs a trained transcoder and one attribution pass per prompt.</p>
+<h3 id="crosscoders">Crosscoders</h3>
+<p>A crosscoder reads and writes several layers, or several models, with one dictionary. If superposition spreads a feature across layers, a dictionary for a single layer only sees a slice of the feature, while a crosscoder can follow the feature as it persists through the stream, or find which features fine-tuning added or removed. The note from 2024 is explicitly preliminary, so it describes a direction rather than a finished method.</p>
+<h3 id="language-as-the-readout">Language as the readout</h3>
+<p>Three recent results turn interpretation into translation.</p>
+<p><strong>Introspection.</strong> <em>Emergent Introspective Awareness</em> injects a concept directly into the activations of a model and asks whether the model notices anything. Models sometimes report the injected concept and sometimes adjust an internal state on request, but they do so unreliably and depending on the task.</p>
+<p><strong>Natural language autoencoders.</strong> An activation verbalizer turns an activation into text, and an activation reconstructor turns the text back into an activation. Both start from the target model and are trained jointly with reinforcement learning: the verbalizer receives a reward when its text lets the reconstructor recover the activation.</p>
+<pre class="astro-code github-dark-default" style="background-color:#0d1117;color:#e6edf3; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="mermaid"><code><span class="line"><span style="color:#E6EDF3">flowchart TD</span></span>
+<span class="line"><span style="color:#E6EDF3">    A["activation from the target model"] --> V["activation verbalizer (an LLM)"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    V --> T["explanation in plain text"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    T --> R["activation reconstructor (an LLM)"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    R --> A2["reconstructed activation"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    A2 --> L["error against the original activation"]</span></span>
+<span class="line"><span style="color:#E6EDF3">    L -. "RL reward" .-> V</span></span></code></pre>
+<p><em>Figure 7: A natural language autoencoder. Language is the bottleneck, so the code is readable by construction.</em></p>
+<p>No supervision forces the explanations to be interpretable, but they become more informative as the reconstruction improves. In a pre-deployment audit of Claude Opus 4.6, NLAs revealed evaluation awareness that the model never expressed in words, and agents equipped with NLAs performed better than the baselines on an automated auditing benchmark. The paper states the limits openly: explanations can invent specific details, the verbalizer can infer more than the activation contains, and training requires reinforcement learning on two full LLMs.</p>
+<p><strong>The workspace paper.</strong> <em>Verbalizable Representations Form a Global Workspace</em> introduces the Jacobian lens (J-lens). The J-lens finds the representations that a model is about to put into words, and the paper argues that these representations form a workspace. This “J-space” lies in a middle band of layers and has limited capacity, so most features lie outside it. It supports verbal report, directed modulation and multi-step reasoning: ablating its top directions damages multi-hop reasoning, while tasks such as classification stay largely intact. In auditing, strategic content appeared there even when it was absent from the outputs. In addition, the paper trained a model to state its principles when it is interrupted (counterfactual reflection training). This training improved its behavior without interruption, and the gain largely disappeared when the implanted representations were ablated.</p>
+<h3 id="the-j-lens">The J++ lens</h3>
+<p>The J-lens reads out intermediate concepts with one linear map per layer, built by averaging Jacobians over many token positions. The J++ lens, from the circuits update of October 2026, clusters the activations of each layer and fits one Jacobian per cluster. It combines the clusters with learned weights that mostly discard poor clusters, uses layerwise relevance propagation from the R-lens, and filters spurious tokens. It is still one linear map per layer and can directly replace the earlier lenses, and it reveals intermediate variables more reliably than either earlier lens. The update presents the method as preliminary.</p>
+<h2 id="whats-still-open">What’s still open</h2>
+<p>Five problems remain open, and a bigger dictionary solves none of them.</p>
+<ol>
+<li><strong>Feature absorption.</strong> A specific feature can be absorbed into a more general feature, so the SAE reconstructs well without a dedicated latent for the specific concept, and the dictionary looks complete although it is not. One response is Matryoshka SAEs: they train nested dictionaries of increasing size together.</li>
+<li><strong>Evaluation.</strong> Reconstruction, L0, dead latents, auto-interpretability and causal effect measure different things and trade off against each other. A method can improve one metric and worsen another, and a paper that focuses on one metric may not report the others.</li>
+<li><strong>Faithfulness.</strong> An attribution graph is a hypothesis about a computation, and a natural-language explanation is a hypothesis about a representation. Neither is guaranteed to match the mechanism, and the addition case shows that the account of a model itself can differ from its computation.</li>
+<li><strong>Scale.</strong> A dictionary with 34 million features is already large, and a graph over every layer of a production model is even larger. The cost of interpretation now limits how often it can be done.</li>
+<li><strong>Necessity.</strong> If graphs can trace a circuit through transcoders and NLAs can explain an activation without a dictionary, what is the role of the SAE? My own answer is that the SAE is a labeling layer: it gives nodes names and a shared vocabulary. This role is valuable, but it is not the same as being the explanation.</li>
+</ol>
+<h2 id="quick-reference">Quick reference</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Concept</th><th>Formula or meaning</th><th>Source</th></tr></thead><tbody><tr><td>SAE encoder and decoder</td><td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>z</mi><mo>=</mo><mi mathvariant="normal">act</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>W</mi><mi>e</mi></msub><mi>x</mi><mo>+</mo><msub><mi>b</mi><mi>e</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">z=\operatorname{act}(W_e x+b_e)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">act</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">e</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">e</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover accent="true"><mi>x</mi><mo>^</mo></mover><mo>=</mo><msub><mi>W</mi><mi>d</mi></msub><mi>z</mi><mo>+</mo><msub><mi>b</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">\hat{x}=W_d z+b_d</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6944em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">x</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2222em;"><span class="mord">^</span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></td><td>SAELens; Towards Monosemanticity</td></tr><tr><td>SAE loss</td><td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">L</mi><mo>=</mo><mo stretchy="false">∥</mo><mi>x</mi><mo>−</mo><mover accent="true"><mi>x</mi><mo>^</mo></mover><msubsup><mo stretchy="false">∥</mo><mn>2</mn><mn>2</mn></msubsup><mo>+</mo><mi>λ</mi><mi>S</mi><mo stretchy="false">(</mo><mi>z</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{L}=\lVert x-\hat{x}\rVert_2^2+\lambda S(z)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal">L</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">∥</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6944em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">x</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2222em;"><span class="mord">^</span></span></span></span></span></span></span><span class="mclose"><span class="mclose">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-2.4519em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2481em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">λ</span><span class="mord mathnormal" style="margin-right:0.0576em;">S</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mclose">)</span></span></span></span></td><td>Same</td></tr><tr><td>L1 sparsity</td><td>Penalty <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo stretchy="false">∥</mo><mi>z</mi><msub><mo stretchy="false">∥</mo><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\lambda\lVert z\rVert_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">λ</span><span class="mopen">∥</span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mclose"><span class="mclose">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>; shrinks the active coefficients</td><td>Towards Monosemanticity</td></tr><tr><td>TopK sparsity</td><td>At most <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span></span></span></span> active latents per token</td><td>Gao et al. 2024</td></tr><tr><td>JumpReLU sparsity</td><td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>⋅</mo><mn mathvariant="bold">1</mn><mo stretchy="false">[</mo><mi>u</mi><mo>></mo><mi>θ</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">u\cdot\mathbf{1}[u>\theta]</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal">u</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathbf">1</span><span class="mopen">[</span><span class="mord mathnormal">u</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mclose">]</span></span></span></span> with a learned threshold and an L0 penalty</td><td>Rajamanoharan et al. 2024</td></tr><tr><td>Feature</td><td>A direction that an SAE latent writes; a label alone does not show that the model uses it</td><td>This note</td></tr><tr><td>Attribution graph</td><td>A graph of feature-to-feature effects for one prompt, built with a replacement model</td><td>On the Biology of a Large Language Model</td></tr><tr><td>Crosscoder</td><td>One dictionary read from or written to several layers or models</td><td>Sparse Crosscoders</td></tr></tbody></table></div>
+<h2 id="conclusion">Conclusion</h2>
+<p>The field began by decomposing weights into circuits, then found that neurons are not the right unit, built dictionaries of directions, and finally discovered that a dictionary is not a computation. The newest work is the return trip: it puts features back into a graph, or translates activations into language, and checks that the behavior of the model follows.</p>
+<p><strong>Naming a feature is a measurement; showing that the model uses the feature requires an intervention, a graph or a causal test, and the SAE made only the first of these easy.</strong></p>
+<h2 id="appendix-sources-and-conditions">Appendix: sources and conditions</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Table">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Work</th><th>Version</th><th>What this note takes</th><th>Conditions</th><th>Section</th><th>Kind</th></tr></thead><tbody><tr><td><a href="https://transformer-circuits.pub/2021/framework/index.html">A Mathematical Framework for Transformer Circuits</a></td><td>Transformer Circuits, 2021</td><td>The residual stream as a shared channel; circuits</td><td>Small attention-only models</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html">In-context Learning and Induction Heads</a></td><td>Transformer Circuits, 2022</td><td>Induction heads</td><td>Small and medium models</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://transformer-circuits.pub/2022/toy_model/index.html">Toy Models of Superposition</a></td><td>Transformer Circuits, 2022</td><td>Why features outnumber dimensions</td><td>Toy models</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://transformer-circuits.pub/2023/monosemantic-features/index.html">Towards Monosemanticity</a></td><td>Transformer Circuits, 2023</td><td>Dictionary learning with an L1 SAE</td><td>A one-layer transformer</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html">Scaling Monosemanticity</a></td><td>Transformer Circuits, 2024</td><td>About 34 million features; steering by clamping</td><td>Claude 3 Sonnet</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://transformer-circuits.pub/2024/crosscoders/index.html">Sparse Crosscoders</a></td><td>Transformer Circuits, 2024</td><td>Dictionaries across layers and models</td><td>The paper’s models</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://transformer-circuits.pub/2025/attribution-graphs/biology.html">On the Biology of a Large Language Model</a></td><td>Transformer Circuits, 2025</td><td>Attribution graphs, including the addition example</td><td>Claude 3.5 Haiku</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://transformer-circuits.pub/2025/introspection/index.html">Emergent Introspective Awareness</a></td><td>Transformer Circuits, 2025</td><td>What a model can report about its own states</td><td>Claude models</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://transformer-circuits.pub/2026/nla/index.html">Natural Language Autoencoders</a></td><td>Transformer Circuits, 2026</td><td>Readouts of activations in language</td><td>The paper’s models</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://transformer-circuits.pub/2026/workspace/index.html">Verbalizable Representations Form a Global Workspace</a></td><td>Transformer Circuits, 2026</td><td>The workspace result</td><td>The paper’s models</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://transformer-circuits.pub/2026/october-update/index.html">Circuits Updates – October 2026</a></td><td>Transformer Circuits, 2026</td><td>The J++ lens</td><td>The update’s models</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://arxiv.org/abs/2406.04093">Scaling and evaluating sparse autoencoders</a></td><td>arXiv 2024</td><td>TopK SAEs and their evaluation</td><td>GPT-2 and GPT-4 activations</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://arxiv.org/abs/2407.14435">Jumping Ahead: Improving Reconstruction Fidelity with JumpReLU Sparse Autoencoders</a></td><td>arXiv 2024</td><td>JumpReLU and its straight-through gradient</td><td>Gemma 2 activations</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://arxiv.org/abs/2404.16014">Improving Dictionary Learning with Gated Sparse Autoencoders</a></td><td>arXiv 2024</td><td>Gated SAEs</td><td>The paper’s models</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://arxiv.org/abs/2408.05147">Gemma Scope</a></td><td>arXiv 2024</td><td>Released JumpReLU SAEs</td><td>Gemma 2</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://arxiv.org/abs/2406.11944">Transcoders Find Interpretable LLM Feature Circuits</a></td><td>arXiv 2024</td><td>Transcoders for circuits</td><td>The paper’s models</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://arxiv.org/abs/2412.06410">BatchTopK Sparse Autoencoders</a></td><td>arXiv 2024</td><td>TopK over a batch</td><td>The paper’s models</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://arxiv.org/abs/2409.14507">A is for Absorption</a></td><td>arXiv 2024</td><td>Feature splitting and absorption</td><td>The paper’s SAEs</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://arxiv.org/abs/2503.17547">Learning Multi-Level Features with Matryoshka Sparse Autoencoders</a></td><td>arXiv 2025</td><td>Nested dictionaries</td><td>The paper’s models</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://arxiv.org/abs/2503.09532">SAEBench</a></td><td>arXiv 2025</td><td>Benchmarks for SAEs</td><td>The benchmark’s tasks</td><td>Whole work</td><td>Primary</td></tr><tr><td><a href="https://transformerlensorg.github.io/TransformerLens/">TransformerLens documentation</a></td><td>Current docs</td><td>Hooks into model activations</td><td>TransformerLens</td><td>Hooks</td><td>Primary</td></tr><tr><td><a href="https://github.com/decoderesearch/SAELens">SAELens source</a></td><td>Current repository</td><td>The SAE classes and the training loop</td><td>MIT license</td><td><code>sae.py</code>, <code>topk_sae.py</code>, <code>jumprelu_sae.py</code>, <code>sae_trainer.py</code></td><td>Primary</td></tr></tbody></table></div>
+<p>The code blocks are quoted, abbreviated, from SAELens and TransformerLens, whose MIT licenses and copyright notices remain with those projects. Figures 3 and 4 are illustrations drawn for this post, not measurements.</p></div> </article> <aside class="toc toc-side" aria-label="Contents"> <p class="toc-title">Contents</p> <ol> <li><a href="#from-circuits-to-features-and-back">From circuits to features and back</a></li><li><a href="#what-an-sae-is-today">What an SAE is today</a></li><li><a href="#putting-features-back-into-the-computation">Putting features back into the computation</a></li><li><a href="#whats-still-open">What’s still open</a></li><li><a href="#quick-reference">Quick reference</a></li><li><a href="#conclusion">Conclusion</a></li><li><a href="#appendix-sources-and-conditions">Appendix: sources and conditions</a></li> </ol> </aside> </div> </main> <footer> <div class="shell footer-inner"> <span>© 2026 MUR · Built for deep systems work.</span> <a href="/rss.xml">RSS</a> </div> </footer> <button class="back-to-top" type="button" aria-label="Back to top" data-en="Back to top" hidden> <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.2 3.4 7.8a.75.75 0 0 0 1.06 1.06L7.25 6.07v6.68a.75.75 0 0 0 1.5 0V6.07l2.79 2.79A.75.75 0 1 0 12.6 7.8L8 3.2Z"></path></svg> </button> <div class="en-tip" role="tooltip" lang="en" hidden></div> <script type="module" src="/_astro/BaseLayout.astro_astro_type_script_index_0_lang.DomIvaLf.js"></script> </body> </html> <script type="module">const i=[...document.querySelectorAll(".toc-side a")],c=i.map(e=>document.getElementById(decodeURIComponent(e.hash.slice(1)))).filter(e=>!!e);function o(){const e=window.innerHeight*.3;let r=-1;c.forEach((t,n)=>{t.getBoundingClientRect().top<=e&&(r=n)}),i.forEach((t,n)=>{n===r?t.setAttribute("aria-current","location"):t.removeAttribute("aria-current")})}if(c.length){let e=0;window.addEventListener("scroll",()=>{e||(e=window.requestAnimationFrame(()=>{o(),e=0}))},{passive:!0}),o()}document.querySelectorAll(".toc-inline a").forEach(e=>{e.addEventListener("click",()=>e.closest("details")?.removeAttribute("open"))});</script>
